@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusat Integrasi Data Digital | Puskesmas Kiarapedes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        #loginSection { transition: all 0.5s ease; }
+        .animate-in { animation: fadeIn 0.8s ease forwards; }
+        @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }}
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        :root { --emerald-glow: rgba(16, 185, 129, 0.4); --slate-deep: #020617; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--slate-deep); color: #f8fafc; overflow-x: hidden; min-height: 100vh; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .bg-mesh { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 20%); }
+        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .app-card { transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(255, 255, 255, 0.03); height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .app-card:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(16, 185, 129, 0.3); transform: translateY(-10px); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7); }
+        #docSidebar { transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); z-index: 100; transform: translateX(100%); }
+        .sidebar-open { transform: translateX(0) !important; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <div id="loginSection" class="flex items-center justify-center min-h-screen p-6 transition-all duration-700">
+        <div class="glass-panel w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-white/10">
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20 rotate-6">
+                    <i class="fas fa-fingerprint text-3xl text-slate-900"></i>
+                </div>
+                <h1 class="text-xl font-black tracking-widest uppercase">Akses <span class="text-emerald-500">Satu Data</span></h1>
+                <p class="text-[14px] text-slate-500 font-bold tracking-widest mt-2 uppercase">Puskesmas Kiarapedes</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" id="user" onkeydown="if(event.key === 'Enter') document.getElementById('pass').focus()" class="w-full bg-slate-900/50 border border-white/5 p-4 rounded-xl text-sm focus:border-emerald-500 transition-all outline-none mono text-white" placeholder="Nama Pengguna">
+                <input type="password" id="pass" onkeydown="if(event.key === 'Enter') auth()" class="w-full bg-slate-900/50 border border-white/5 p-4 rounded-xl text-sm focus:border-emerald-500 transition-all outline-none mono text-white" placeholder="Kata Sandi">
+                <button onclick="auth()" id="authBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] mt-4 shadow-xl transition-all active:scale-95">
+                    Verifikasi Akses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="hubSection" class="hidden p-6 lg:p-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+    <header class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center mb-16 gap-8">
+        <div class="text-center lg:text-left">
+            <div class="flex flex-col items-center lg:items-start gap-1">
+			 
+                <p class="text-[14px] font-black uppercase tracking-[0.5em] text-slate-400 mb-1">
+                    Pusat <span class="text-emerald-500 italic">Layanan</span>
+                </p>
+                <h1 class="text-3xl lg:text-5xl font-extrabold tracking-tighter italic uppercase text-white leading-none">
+				<i class="fa fa-cubes"></i>
+                   Satu Data <span class="text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]"></span>
+				   <span class="bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent"> Puskesmas Kiarapedes </span>
+                </h1>
+              </div>
+			 </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="toggleDoc()" class="flex items-center gap-3 bg-emerald-500/10 hover:bg-emerald-500/20 px-6 py-3 rounded-2xl transition-all border border-emerald-500/20 text-emerald-500">
+                    <i class="fas fa-book-medical"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Panduan & Log Sistem</span>
+                </button>
+                <button onclick="logout()" class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center border border-rose-500/10">
+                    <i class="fas fa-power-off text-sm"></i>
+                </button>
+            </div>
+        </header>
+        
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <a href="analisis-data.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-emerald-500/20">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all"><i class="fas fa-chart-line text-xl"></i></div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase text-emerald-500">Analisis Data</h3><span class="text-xl text-emerald-600">Manajemen Data dan Informasi</span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Sinkronisasi data ASIK vs E-Puskesmas dan mapping tren penyakit.</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-emerald-500 uppercase tracking-widest">Akses Sistem <i class="fas fa-check-double"></i></div>
+    </a>
+            
+    <a href="earsip-2.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-blue-500/10">
+	     <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all"><i class="fas fa-users-viewfinder text-xl"></i></div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Arsip Digital</h3><span class="text-xl text-blue-600">Manajemen Arsip</span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Pusat digitalisasi surat, regulasi, dan dokumen akreditasi puskesmas</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-blue-500 uppercase tracking-widest">Buka Sistem <i class="fas fa-edit"></i></div>
+    </a>
+
+    <a href="p.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-purple-500/10">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-all"><i class="fas fa-folder-open text-xl"></i></div>
+                <span class="text-[8px] font-black opacity-30 tracking-widest uppercase text-white"></span>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-purple-600">Modul Tambahan... </span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-purple-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
+    </a>
+    
+    <a href="sip.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-amber-500/10">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all"><i class="fas fa-boxes-stacked text-xl"></i></div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-amber-600">Modul Tambahan... </span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-amber-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
+    </a>
+
+    <a href="ikm.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-cyan-500/10">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-white transition-all"><i class="fas fa-face-smile text-xl"></i></div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-cyan-600">Modul Tambahan... </span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-cyan-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
+    </a>
+
+    <a href="antrean.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-rose-500/10">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-all"><i class="fas fa-clock-rotate-left text-xl"></i></div>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-rose-600">Modul Tambahan... </span>
+            <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes.</p>
+        </div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-rose-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
+    </a>
+</div>
+
+    <div id="docSidebar" class="fixed inset-y-0 right-0 w-full md:w-[450px] glass-panel border-l border-white/10 shadow-2xl p-10 overflow-y-auto">
+        <div class="flex justify-between items-center mb-12">
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter text-white">Manual <span class="text-emerald-500">Sistem</span></h2>
+            <button onclick="toggleDoc()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/10"><i class="fas fa-times"></i></button>
+        </div>
+		
+        <div class="space-y-6 text-sm text-slate-400 leading-relaxed">
+    <p><b class="text-emerald-500 uppercase tracking-wider"></b> Mengintegrasikan seluruh data administrasi ke dalam satu gerbang akses terenkripsi untuk mewujudkan transformasi kesehatan digital.</p>
+    
+    <div class="space-y-3">
+        <b class="text-emerald-500 uppercase tracking-wider block mb-2"> Kerja Sistem:</b> 
+        <ul class="space-y-3 list-none">
+            <li class="flex gap-3">
+                <span class="text-emerald-500 font-bold">1.</span>
+                <span><b class="text-slate-200">Frontend:</b> Interface berbasis Tailwind CSS yang dioptimalkan untuk akses responsif via Smartphone, Tablet, maupun Desktop.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="text-emerald-500 font-bold">2.</span>
+                <span><b class="text-slate-200">Authentication:</b> Protokol keamanan pintu berlapis menggunakan verifikasi token enkripsi <code class="bg-white/10 px-1 rounded text-emerald-300">SECRET_TOKEN</code>.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="text-emerald-500 font-bold">3.</span>
+                <span><b class="text-slate-200">Data Layer:</b> Integrasi <b class="text-white">Google Apps Script (GAS)</b> sebagai *bridge* (jembatan) data real-time antara Web Interface dan Cloud Database.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="text-emerald-500 font-bold">4.</span>
+                <span><b class="text-slate-200">Security:</b> Proteksi sesi login berbasis enkripsi lokal untuk menjaga kerahasiaan data selama masa aktif peramban (browser).</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/20 backdrop-blur-sm">
+        <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-shield-check text-emerald-500 text-xs"></i>
+            <p class="text-[10px] font-bold text-white uppercase tracking-widest">Log Keamanan Sesi</p>
+        </div>
+        <p class="text-[11px] italic text-slate-500">Sesi enkripsi Anda bersifat sementara. Akses akan otomatis terputus apabila cache browser dibersihkan atau sesi berakhir.</p>
+    </div>
+</div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwP963edxjXReJ8ghk4wQHvwqmhOQI5pS2BIM5kucAklF84wGDTZ_RKm9ADs1YWGrPz/exec";
+
+    async function auth() {
+    const user = document.getElementById('user').value.trim();
+    const pass = document.getElementById('pass').value;
+    const btn = document.getElementById('authBtn');
+
+    if (!user || !pass) {
+        alert("Username dan PIN wajib diisi!");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Memverifikasi...`;
+
+    try {
+        const response = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify({ 
+                action: "login", 
+                token: pass,
+                user: user
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            localStorage.setItem('pkm_session', result.token || 'AUTHORIZED');
+            localStorage.setItem('pkm_session_time', new Date().getTime());
+            showHub(); 
+        } else {
+            alert("Akses Ditolak: " + result.message);
+        }
+    } catch (error) {
+        alert("Kesalahan Sistem: Gagal terhubung ke Server Satu Data.");
+        console.error("Detail Error:", error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Verifikasi Akses";
+    }
+}
+
+    // 3. FUNGSI UI (MENAMPILKAN HUB)
+    function showHub() {
+        const login = document.getElementById('loginSection');
+        const hub = document.getElementById('hubSection');
+        
+        login.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            login.classList.add('hidden');
+            hub.classList.remove('hidden');
+            // Memicu ulang animasi stagger
+            const items = hub.querySelectorAll('.stagger-in');
+            items.forEach((item, index) => {
+            item.style.animationDelay = (index * 0.1) + 's';
+            });
+        }, 500);
+    }
+
+    // 4. FUNGSI LOGOUT
+    function logout() {
+        if(confirm("Keluar dari Sistem Satu Data?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // 5. SIDEBAR MANUAL
+    function toggleDoc() {
+        document.getElementById('docSidebar').classList.toggle('sidebar-open');
+    }
+
+    // 6. CEK SESI SAAT HALAMAN DIMUAT
+    window.onload = function() {
+        const session = localStorage.getItem('pkm_session');
+        const sessionTime = localStorage.getItem('pkm_session_time');
+        const now = new Date().getTime();
+        const expiry = 4 * 60 * 60 * 1000; // 4 Jam
+
+        if (session && (now - sessionTime < expiry)) {
+            // Langsung tampilkan Hub tanpa animasi transisi
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('hubSection').classList.remove('hidden');
+        } else {
+            localStorage.clear();
+        }
+    };
+</script>
+</body>
+</html>
