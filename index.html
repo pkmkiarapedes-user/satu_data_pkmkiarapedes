@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
+	<script>
+    (function() {
+        const session = localStorage.getItem('pkm_session_status');
+        if (session !== 'AUTHORIZED') {
+            alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
+            window.location.href = "index.html";
+        }
+    })();
+</script>
+	
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -195,7 +205,7 @@
     const btn = document.getElementById('authBtn');
 
     if (!user || !pass) {
-        alert("Username dan PIN wajib diisi!");
+        alert("⚠️ Username dan PIN wajib diisi!");
         return;
     }
 
@@ -203,11 +213,12 @@
     btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Memverifikasi...`;
 
     try {
+        // Kita kirim PIN ke GAS. GAS yang akan menentukan PIN itu benar/salah.
         const response = await fetch(GAS_URL, {
             method: "POST",
             body: JSON.stringify({ 
                 action: "login", 
-                token: pass,
+                token: pass, 
                 user: user
             })
         });
@@ -215,21 +226,22 @@
         const result = await response.json();
 
         if (result.status === "success") {
-            localStorage.setItem('pkm_session', result.token || 'AUTHORIZED');
-            localStorage.setItem('pkm_session_time', new Date().getTime());
+            // Simpan status login di localStorage
+            localStorage.setItem('pkm_session_status', 'AUTHORIZED');
+            localStorage.setItem('pkm_session_user', user);
+            localStorage.setItem('pkm_session_pin', btoa(pass)); // Encode simpel agar tidak telanjang
+            
             showHub(); 
         } else {
-            alert("Akses Ditolak: " + result.message);
+            alert("❌ Akses Ditolak: " + result.msg);
         }
     } catch (error) {
-        alert("Kesalahan Sistem: Gagal terhubung ke Server Satu Data.");
-        console.error("Detail Error:", error);
+        alert("⚠️ Gagal terhubung ke Server Cloud.");
     } finally {
         btn.disabled = false;
         btn.innerHTML = "Verifikasi Akses";
     }
 }
-
     // 3. FUNGSI UI (MENAMPILKAN HUB)
     function showHub() {
         const login = document.getElementById('loginSection');
