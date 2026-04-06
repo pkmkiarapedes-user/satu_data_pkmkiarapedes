@@ -86,7 +86,7 @@
     </a>
         
         <div class="pt-4 mt-4 border-t border-slate-800">
-            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5" style="font-size:20px; color:LawnGreen"></i> Pedoman Kode</button>
+            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5" style="font-size:20px; color:LawnGreen"></i> Panduan & Pedoman Sistem</button>
             <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5" id="syncIcon" style="font-size:20px; color:OrangeRed"></i> Sinkronisasi</button>
             <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5" style="font-size:20px; color:MediumSeaGreen"></i> Export Excel</button>
             <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5" id="themeIcon" style="font-size:20px; color:white"></i> Ganti Tema</button>
@@ -144,7 +144,7 @@
                             </div>
                         </div>
 
-                        <select id="selJenisSurat" class="input-modern" onchange="generatePreview()">
+                        <select id="selJenisSurat" class="input-modern" required onchange="generatePreview()">
                             <option value="">-- Pilih Jenis Dokumen --</option>
                             <option value="SK">📄 SURAT KEPUTUSAN (SK)</option>
                             <option value="SOP">📋 PROSEDUR (SOP)</option>
@@ -162,11 +162,11 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="noUrut" class="input-modern" placeholder="No Urut" oninput="generatePreview()">
-                            <input type="date" id="arsipTgl" class="input-modern" onchange="generatePreview()">
+                            <input type="number" id="noUrut" class="input-modern" placeholder="No Urut" required oninput="generatePreview()">
+                            <input type="date" id="arsipTgl" class="input-modern" required onchange="generatePreview()">
                         </div>
 
-                        <textarea id="arsipNama" class="input-modern h-16" placeholder="PERIHAL / NAMA DOKUMEN" required></textarea>
+                        <textarea id="arsipNama" class="input-modern h-16" placeholder="Perihal / Nama Dokumen" required></textarea>
                         
                         <input type="file" id="arsipFile" class="hidden" accept=".pdf">
                         <label for="arsipFile" id="labelFile" class="w-full border-2 border-dashed p-4 rounded-xl flex flex-col items-center cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-800 transition">
@@ -228,6 +228,7 @@
     let database = JSON.parse(localStorage.getItem('db_arsip_kpds')) || [];
     let currentMode = 'arsip';
     let editIndex = null;
+    let currentEditNo = null; // Tambahkan ini untuk mengunci nomor saat edit
     let fileData = null;
 
     const KLASTER = {
@@ -276,7 +277,6 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-' + mode).classList.add('active');
         document.getElementById('pageTitle').innerText = mode === 'arsip' ? 'Arsip Digital (SK/SOP)' : mode.toUpperCase();
-        
         document.getElementById('arsipOnly').classList.toggle('hidden', mode !== 'arsip');
         document.getElementById('regOnly').classList.toggle('hidden', mode === 'arsip' || mode === 'agenda');
         
@@ -291,6 +291,10 @@
     }
 
     function generatePreview() {
+		if (editIndex !== null && currentEditNo !== null) {
+            document.getElementById('displayNomor').innerText = currentEditNo;
+            return currentEditNo;
+        }
         const jenis = document.getElementById('selJenisSurat').value || "DOC";
         const s = document.getElementById('selSub').value;
         const kode = s ? s.split(' ')[0] : "000";
@@ -328,12 +332,13 @@
 reader.onload = (ev) => {
     const result = ev.target.result;
     fileData = { 
-        base64: result, // simpan full string dulu
+        base64: result, 
         name: file.name, 
         type: file.type 
     };
-    label.innerHTML = "✅ " + file.name + " (FILE SIAP)";
-    document.getElementById('btnSimpan').disabled = false; // Aktifkan tombol
+    
+    label.innerHTML = `<i class="fas fa-check-circle text-emerald-500"></i> ${file.name}`;
+    label.classList.add('border-emerald-500', 'bg-emerald-50');
 };
     
     reader.onerror = () => {
@@ -348,27 +353,36 @@ reader.onload = (ev) => {
    document.getElementById('formArsip').onsubmit = async (e) => {
     e.preventDefault();
     
+    // 1. Ambil data input
+    const jenisSurat = document.getElementById('selJenisSurat').value;
+    const noUrut = document.getElementById('noUrut').value;
+    const tgl = document.getElementById('arsipTgl').value;
+    const namaDokumen = document.getElementById('arsipNama').value.trim();
+
+    // 2. Validasi Wajib Isi
+    if (!jenisSurat || !noUrut || !tgl || !namaDokumen) {
+        alert("⚠️ SEMUA KOLOM WAJIB DIISI!");
+        return;
+    }
+
+    // 3. Validasi File (Hanya wajib jika tambah baru)
+    if (editIndex === null && !fileData) {
+        alert("⚠️ Silahkan pilih file PDF terlebih dahulu!");
+        return;
+    }
+
     const btn = document.getElementById('btnSimpan');
     const progContainer = document.getElementById('progressContainer');
     const progBar = document.getElementById('progressBar');
     const progText = document.getElementById('progressText');
-    const namaDokumen = document.getElementById('arsipNama').value.trim();
 
-    if (editIndex === null && !fileData) {
-        alert("⚠️ File PDF belum terbaca sempurna atau belum dipilih. Mohon tunggu label menjadi 'SIAP'!");
-        return;
-    }
-
-    if (namaDokumen.length < 2) {
-        alert("Perihal/Nama Dokumen terlalu pendek!");
-        return;
-    }
-
+    // Animasi Loading
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
     progContainer.classList.remove('hidden');
     
     const nomorSurat = generatePreview();
+    
     const payload = {
         token: sessionStorage.getItem('arsip_session_pin'),
         action: editIndex !== null ? "update" : "upload",
@@ -377,25 +391,22 @@ reader.onload = (ev) => {
         nama: namaDokumen.toUpperCase(),
         klaster: document.getElementById('selKlaster').value,
         sub: document.getElementById('selSub').value,
-        jenisSurat: document.getElementById('selJenisSurat').value,
-        tgl: document.getElementById('arsipTgl').value,
+        jenisSurat: jenisSurat,
+        tgl: tgl,
         asal: document.getElementById('inpAsal').value,
         tujuan: document.getElementById('inpTujuan').value,
-        // Kirim data base64
-        fileData: fileData ? fileData.base64 : null
+        fileData: fileData ? fileData.base64 : null 
     };
 
-    console.log("Payload yang dikirim:", payload); // LIHAT DI F12 BROWSER
-
+    // Simulasi progress (karena fetch asli tidak mendukung progress upload secara native tanpa XHR)
     let progress = 0;
     const interval = setInterval(() => {
         if (progress < 90) {
             progress += Math.random() * 15;
-            if (progress > 90) progress = 90;
-            progBar.style.width = progress + '%';
-            progText.innerText = `MENGUNGGAH... ${Math.round(progress)}%`;
+            progBar.style.width = Math.min(progress, 90) + '%';
+            progText.innerText = `MENGUNGGAH... ${Math.round(Math.min(progress, 90))}%`;
         }
-    }, 150);
+    }, 200);
 
     try {
         const resp = await fetch(GAS_URL, { 
@@ -408,13 +419,13 @@ reader.onload = (ev) => {
             clearInterval(interval);
             progBar.style.width = '100%';
             progBar.classList.replace('bg-blue-600', 'bg-emerald-500');
-            progText.innerText = "BERHASIL DISIMPAN!";
+            progText.innerText = "BERHASIL!";
             
             setTimeout(() => {
-                alert("✅ Data Berhasil Disimpan ke Spreadsheet & Drive!");
+                alert("✅ Data Berhasil Disimpan!");
                 resetForm(); 
                 syncFromGAS();
-            }, 800);
+            }, 500);
         } else {
             throw new Error(res.msg);
         }
@@ -423,12 +434,12 @@ reader.onload = (ev) => {
         progBar.classList.replace('bg-blue-600', 'bg-rose-500');
         progText.innerText = "GAGAL!";
         alert("❌ Gagal: " + err.message);
-        setTimeout(() => progContainer.classList.add('hidden'), 3000);
     } finally {
         btn.disabled = false;
         btn.innerText = "SIMPAN & ARSIPKAN";
     }
 };
+
     // --- SYNC DATA ---
     async function syncFromGAS() {
         const syncIcon = document.getElementById('syncIcon');
@@ -518,6 +529,7 @@ reader.onload = (ev) => {
     function editData(i) {
         editIndex = i;
         const d = database[i];
+		currentEditNo = d.no;
         document.getElementById('selJenisSurat').value = d.jenis || "";
         document.getElementById('selKlaster').value = d.klaster;
         updateSub();
@@ -542,8 +554,8 @@ reader.onload = (ev) => {
     }
 
     function resetForm() {
-    // 1. Reset Status Logika
     editIndex = null;
+    currentEditNo = null; // Reset pengunci nomor
     fileData = null;
 
     // 2. Reset Form Input
@@ -571,17 +583,48 @@ reader.onload = (ev) => {
     document.getElementById('progressText').className = "text-[10px] font-bold text-blue-700 mt-1.5 text-center";
 }
 
-    // --- PEDOMAN ---
     function togglePedoman() {
-        const m = document.getElementById('modalPedoman');
-        if(m.classList.contains('hidden')) {
-            let h = `<div class="col-span-full mb-6 bg-emerald-50 p-6 rounded-3xl border-2 border-dashed border-emerald-200">
-                <h3 class="text-emerald-700 font-black uppercase text-sm mb-4 italic">Panduan Operasional</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]">
-                    <div><p class="font-bold mb-1 uppercase">A. Login & Sync</p><li>PIN Utama: 2026</li><li>Klik icon Orange untuk update data.</li></div>
-                    <div><p class="font-bold mb-1 uppercase">B. Retensi & File</p><li>PDF Max 5MB</li><li>Warna Merah berkedip = Dokumen > 10 Tahun.</li></div>
+    const m = document.getElementById('modalPedoman');
+    if(m.classList.contains('hidden')) {
+        let h = `
+        <div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200 dark:border-emerald-800">
+            <h3 class="text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm mb-4 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i> Panduan Operasional Sistem
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] leading-relaxed">
+                <div>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">A. AKSES & KEAMANAN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Gunakan PIN <b>2026</b> untuk masuk.</li>
+                        <li>Klik <b>Sinkronisasi (Orange)</b> setiap kali membuka aplikasi untuk data terbaru.</li>
+                    </ul>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">B. INPUT DOKUMEN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Pilih Klaster & Sub untuk kode otomatis.</li>
+                        <li>Perihal minimal 5 karakter & gunakan huruf KAPITAL.</li>
+                        <li>File PDF maksimal <b>5MB</b>.</li>
+                    </ul>
                 </div>
-            </div>`;
+                <div>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">C. PENCARIAN & MANAJEMEN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Filter Klaster untuk menyaring data per bidang.</li>
+                        <li><b>Export Excel</b> akan mengunduh data sesuai hasil pencarian/filter Anda.</li>
+                        <li>Gunakan ikon <b>QR</b> untuk mencetak label fisik map.</li>
+                    </ul>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">D. KOREKSI DATA</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Klik <b>Pensil</b> untuk edit, klik <b>Sampah</b> untuk hapus.</li>
+                        <li>Penghapusan memerlukan verifikasi PIN kembali.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-full mb-2">
+            <h3 class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] mb-4">Daftar Kode Klasifikasi (Perbup No 135 Th 2023)</h3>
+        </div>
+        `;
+			
             Object.keys(KLASTER).forEach(k => {
                 const s = CLUSTER_STYLES[k];
                 h += `<div class="p-4 ${s.bg} rounded-2xl border border-slate-100"><div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}"><i class="fas ${s.icon}"></i> ${k}</div><div class="flex flex-wrap gap-1">${KLASTER[k].map(c => `<span class="kode-tag">${c}</span>`).join('')}</div></div>`;
