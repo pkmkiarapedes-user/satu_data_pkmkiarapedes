@@ -1,5 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
+
+    <script>
+    (function() {
+        const session = localStorage.getItem('pkm_session_status');
+        if (session !== 'AUTHORIZED') {
+            alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
+            window.location.href = "index.html";
+        }
+    })();
+</script>
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
