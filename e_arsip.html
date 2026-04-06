@@ -448,65 +448,64 @@ reader.onload = (ev) => {
 
     // --- TABEL & STATISTIK ---
     function renderTable() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = database.filter(x => 
-            (x.mode || 'arsip') === currentMode && 
-            (x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q))
-        );
-        
-        // Statistik
-        document.getElementById('statTotal').innerText = database.length;
-        document.getElementById('statSK').innerText = database.filter(x => x.jenis === 'SK').length;
-        document.getElementById('statSOP').innerText = database.filter(x => x.jenis === 'SOP').length;
-        document.getElementById('statLain').innerText = database.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
-        document.getElementById('statKlaster').innerText = [...new Set(database.map(x => x.klaster))].length;
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = database.filter(x => 
+        (x.mode || 'arsip') === currentMode && 
+        (x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q))
+    );
+    
+    // Update Statistik
+    document.getElementById('statTotal').innerText = database.length;
+    document.getElementById('statSK').innerText = database.filter(x => x.jenis === 'SK').length;
+    document.getElementById('statSOP').innerText = database.filter(x => x.jenis === 'SOP').length;
+    document.getElementById('statLain').innerText = database.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
+    document.getElementById('statKlaster').innerText = [...new Set(database.map(x => x.klaster))].length;
 
-        // Render Baris
-        document.getElementById('tableBody').innerHTML = filtered.map((x) => {
-            // Logika Masa Retensi
-            const thnArsip = new Date(x.tgl).getFullYear();
-            const thnSekarang = new Date().getFullYear();
-            const umur = thnSekarang - thnArsip;
-            let retensiLabel = "", retensiColor = "";
+    // Render Baris Tabel
+    document.getElementById('tableBody').innerHTML = filtered.map((x) => {
+        // --- LOGIKA MASA RETENSI DINAMIS ---
+        // Menggunakan status retensi langsung dari properti yang dikirim GAS
+        const retensiLabel = x.retensi || "✅ Aktif"; 
+        let retensiColor = "";
 
-            if (x.jenis === "PERMANEN") {
-                retensiLabel = "PERMANEN";
-                retensiColor = "bg-emerald-100 text-emerald-700";
-            } else if (umur >= 10) {
-                retensiLabel = `INAKTIF (${umur} THN)`;
-                retensiColor = "bg-rose-100 text-rose-700 animate-pulse";
-            } else if (umur >= 5) {
-                retensiLabel = `RETENSI (${umur} THN)`;
-                retensiColor = "bg-amber-100 text-amber-700";
-            } else {
-                retensiLabel = `AKTIF (${umur} THN)`;
-                retensiColor = "bg-slate-100 text-slate-400";
-            }
+        // Menentukan warna berdasarkan teks status dari GAS
+        if (retensiLabel.includes("PERMANEN")) {
+            retensiColor = "bg-emerald-100 text-emerald-700";
+        } else if (retensiLabel.includes("⚠️") || retensiLabel.includes("INAKTIF") || retensiLabel.includes("habis")) {
+            // Merah berkedip jika sudah masuk masa retensi atau inaktif
+            retensiColor = "bg-rose-100 text-rose-700 animate-pulse";
+        } else if (retensiLabel.includes("🕒") || retensiLabel.includes("Hampir")) {
+            // Kuning jika hampir habis
+            retensiColor = "bg-amber-100 text-amber-700";
+        } else {
+            // Hijau/Slate untuk dokumen aktif
+            retensiColor = "bg-slate-100 text-slate-400";
+        }
 
-            return `
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td class="p-4">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
-                        <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retensiColor}">${retensiLabel}</span>
-                    </div>
-                    <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
-                    <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
-                        <i class="far fa-calendar-alt mr-1"></i>${x.tgl} ${x.asal ? '| Dari: '+x.asal : ''} ${x.tujuan ? '| Ke: '+x.tujuan : ''}
-                    </div>
-                </td>
-                <td class="p-4 text-center">
-                    <span class="px-2 py-1 rounded-full text-[8px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
-                </td>
-                <td class="p-4 flex justify-center gap-2">
-                    <button onclick="cetakBarcode(${database.indexOf(x)})" class="btn-action bg-slate-100 hover:bg-emerald-500 hover:text-white"><i class="fas fa-qrcode"></i></button>
-                    <button onclick="editData(${database.indexOf(x)})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white"><i class="fas fa-pen"></i></button>
-                    <button onclick="openPreview('${x.link}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white"><i class="fas fa-eye"></i></button>
-                    <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>`;
-        }).join('');
-    }
+        return `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            <td class="p-4">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
+                    <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retensiColor}">${retensiLabel}</span>
+                </div>
+                <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
+                <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                    <i class="far fa-calendar-alt mr-1"></i>${x.tgl} ${x.asal ? '| Dari: '+x.asal : ''} ${x.tujuan ? '| Ke: '+x.tujuan : ''}
+                </div>
+            </td>
+            <td class="p-4 text-center">
+                <span class="px-2 py-1 rounded-full text-[8px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
+            </td>
+            <td class="p-4 flex justify-center gap-2">
+                <button onclick="cetakBarcode(${database.indexOf(x)})" class="btn-action bg-slate-100 hover:bg-emerald-500 hover:text-white"><i class="fas fa-qrcode"></i></button>
+                <button onclick="editData(${database.indexOf(x)})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white"><i class="fas fa-pen"></i></button>
+                <button onclick="openPreview('${x.link}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white"><i class="fas fa-eye"></i></button>
+                <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
 
     // --- FITUR QR & PRINT ---
     function cetakBarcode(i) {
