@@ -3,9 +3,11 @@
 	<script>
     (function() {
         const session = localStorage.getItem('pkm_session_status');
-        if (session !== 'AUTHORIZED') {
-            alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
-            window.location.href = "index.html";
+        if (session === 'AUTHORIZED') {
+            window.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('hubSection').classList.remove('hidden');
+            });
         }
     })();
 </script>
@@ -274,19 +276,21 @@
 
     // 6. CEK SESI SAAT HALAMAN DIMUAT
     window.onload = function() {
-        const session = localStorage.getItem('pkm_session');
-        const sessionTime = localStorage.getItem('pkm_session_time');
-        const now = new Date().getTime();
-        const expiry = 4 * 60 * 60 * 1000; // 4 Jam
+    const session = localStorage.getItem('pkm_session_status');
+    const sessionTime = localStorage.getItem('pkm_session_time');
+    const now = new Date().getTime();
+    const expiry = 4 * 60 * 60 * 1000; // Sesi berlaku 4 Jam
 
-        if (session && (now - sessionTime < expiry)) {
-            // Langsung tampilkan Hub tanpa animasi transisi
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('hubSection').classList.remove('hidden');
-        } else {
-            localStorage.clear();
-        }
-    };
+    if (session === 'AUTHORIZED' && sessionTime && (now - sessionTime < expiry)) {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('hubSection').classList.remove('hidden');
+    } else {
+        // Jika sesi habis atau tidak ada, hapus data dan tampilkan form login
+        localStorage.clear();
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('hubSection').classList.add('hidden');
+    }
+};
 </script>
 </body>
 </html>
