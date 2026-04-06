@@ -2,12 +2,13 @@
 <html lang="id">
 	<script>
     (function() {
+        // Cek secara instan untuk mencegah layar "berkedip"
         const session = localStorage.getItem('pkm_session_status');
         if (session === 'AUTHORIZED') {
-            window.addEventListener('DOMContentLoaded', () => {
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('hubSection').classList.remove('hidden');
-            });
+            // Kita gunakan CSS inject agar form login langsung hilang sebelum render
+            const style = document.createElement('style');
+            style.innerHTML = '#loginSection { display: none !important; } #hubSection { display: block !important; }';
+            document.head.appendChild(style);
         }
     })();
 </script>
@@ -199,7 +200,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwP963edxjXReJ8ghk4wQHvwqmhOQI5pS2BIM5kucAklF84wGDTZ_RKm9ADs1YWGrPz/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBHXJpJ2OxXNTWs8QeRqfphIzASX1L7B_cWWeVsJ6SV3YsubGst7jB_3SyNRJjjflWBw/exec";
 
     async function auth() {
     const user = document.getElementById('user').value.trim();
@@ -215,23 +216,18 @@
     btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Memverifikasi...`;
 
     try {
-        // Kita kirim PIN ke GAS. GAS yang akan menentukan PIN itu benar/salah.
         const response = await fetch(GAS_URL, {
             method: "POST",
-            body: JSON.stringify({ 
-                action: "login", 
-                token: pass, 
-                user: user
-            })
+            body: JSON.stringify({ action: "login", token: pass, user: user })
         });
 
         const result = await response.json();
 
         if (result.status === "success") {
-            // Simpan status login di localStorage
+            // SIMPAN DATA LOGIN
             localStorage.setItem('pkm_session_status', 'AUTHORIZED');
             localStorage.setItem('pkm_session_user', user);
-            localStorage.setItem('pkm_session_pin', btoa(pass)); // Encode simpel agar tidak telanjang
+            localStorage.setItem('pkm_session_time', new Date().getTime()); // <--- PENTING: Tambahkan ini
             
             showHub(); 
         } else {
@@ -275,18 +271,26 @@
     }
 
     // 6. CEK SESI SAAT HALAMAN DIMUAT
-    window.onload = function() {
+   window.onload = function() {
     const session = localStorage.getItem('pkm_session_status');
     const sessionTime = localStorage.getItem('pkm_session_time');
     const now = new Date().getTime();
-    const expiry = 4 * 60 * 60 * 1000; // Sesi berlaku 4 Jam
+    const expiry = 4 * 60 * 60 * 1000; // 4 Jam
 
-    if (session === 'AUTHORIZED' && sessionTime && (now - sessionTime < expiry)) {
+    if (session === 'AUTHORIZED') {
+        // Jika ada waktu sesi, cek apakah sudah basi
+        if (sessionTime && (now - sessionTime > expiry)) {
+            alert("Sesi telah berakhir. Silakan login kembali.");
+            localStorage.clear();
+            location.reload();
+            return;
+        }
+        
+        // Tampilkan Hub
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('hubSection').classList.remove('hidden');
     } else {
-        // Jika sesi habis atau tidak ada, hapus data dan tampilkan form login
-        localStorage.clear();
+        // Jika memang tidak ada sesi, pastikan form login muncul
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('hubSection').classList.add('hidden');
     }
