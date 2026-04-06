@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analitik Data | Puskesmas Kiarapedes</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@700&display=swap');
+        :root { --bg: #020617; --panel: rgba(15, 23, 42, 0.7); --text: #f8fafc; }
+        .light-mode { --bg: #f8fafc; --panel: rgba(255, 255, 255, 0.9); --text: #0f172a; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
+        .glass { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .alert-pulse { animation: pulse-red 2s infinite; border: 2px solid #ef4444; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .trend-up { color: #ef4444; } .trend-down { color: #10b981; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10 text-center md:text-left">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                        <i class="fas fa-microchip text-white text-3xl"></i>
+                    </div>
+                    <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
+                    </span>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter uppercase">Pusat<span class="text-emerald-500"> Analitik Data</span></h1>
+                    <p class="text-[10px] font-bold opacity-60 tracking-[0.3em]">PUSKESMAS KIARAPEDES</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="toggleTheme()" class="glass p-4 hover:scale-105 transition-all"><i id="themeIcon" class="fas fa-sun text-amber-400"></i></button>
+                <button onclick="copyWeeklySummary()" class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-lg">Summary</button>
+                <button onclick="exportMergedExcel()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-indigo-700 transition-all shadow-lg"><i class="fas fa-file-excel mr-2"></i>Fix & Merge</button>
+                <button onclick="exportLaporanPDF()" class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-emerald-700 transition-all shadow-lg">PDF Report</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass p-6 text-center cursor-pointer border-2 border-dashed border-emerald-500/20 hover:border-emerald-500 transition-all" onclick="document.getElementById('fileAsik').click()">
+                <input type="file" id="fileAsik" class="hidden" onchange="handleFileUpload(this, 'asik')">
+                <i class="fas fa-database text-emerald-500 text-2xl mb-2"></i>
+                <p class="text-[10px] font-bold uppercase">Import Data ASIK</p>
+                <p id="nameAsik" class="text-[8px] opacity-40 mt-1 truncate">Format: Excel (.xlsx)</p>
+            </div>
+            <div class="glass p-6 text-center cursor-pointer border-2 border-dashed border-cyan-500/20 hover:border-cyan-500 transition-all" onclick="document.getElementById('fileEpus').click()">
+                <input type="file" id="fileEpus" class="hidden" onchange="handleFileUpload(this, 'epus')">
+                <i class="fas fa-hospital-alt text-cyan-500 text-2xl mb-2"></i>
+                <p class="text-[10px] font-bold uppercase">Import Data e-Puskesmas</p>
+                <p id="nameEpus" class="text-[8px] opacity-40 mt-1 truncate">Format: Excel (.xlsx)</p>
+            </div>
+            <div class="glass p-6">
+                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Search Diagnosis</label>
+                <input type="text" id="searchICD" oninput="renderAnalysis()" placeholder="Contoh: K04 atau Gigi" class="w-full bg-transparent border-b border-white/10 py-1 text-xs focus:outline-none focus:border-emerald-500 transition-all">
+            </div>
+            <div class="glass p-6">
+                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Safety Target</label>
+                <input type="number" id="targetValue" value="50" onchange="renderAnalysis()" class="w-full bg-transparent border-b border-white/10 py-1 text-xs font-bold text-emerald-500 focus:outline-none">
+            </div>
+        </div>
+
+        <div id="printArea">
+            <div id="urgentAlertArea" class="hidden grid grid-cols-1 gap-4 mb-8"></div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass p-6 border-b-4 border-emerald-500">
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Capaian ASIK</p>
+                    <div class="flex items-center gap-2">
+                        <span id="statAsik" class="text-3xl font-black mono">0</span>
+                        <span id="trendAsik" class="text-sm font-bold opacity-0">↑ 0</span>
+                    </div>
+                </div>
+                <div class="glass p-6 border-b-4 border-cyan-500">
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-cyan-500">Capaian E-Puskesmas</p>
+                    <div class="flex items-center gap-2">
+                        <span id="statEpus" class="text-3xl font-black mono text-cyan-500">0</span>
+                        <span id="trendEpus" class="text-sm font-bold opacity-0 text-cyan-500">↑ 0</span>
+                    </div>
+                </div>
+                <div class="glass p-6 border-b-4 border-amber-500">
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-amber-500">Sync Gap</p>
+                    <div id="totalPending" class="text-3xl font-black mono text-amber-500">0</div>
+                </div>
+                <div class="glass p-6 border-b-4 border-purple-500">
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-purple-500">Data Trust</p>
+                    <div id="dataIntegrity" class="text-3xl font-black mono text-purple-500">100%</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 glass p-8">
+                    <h3 class="text-xs font-black opacity-40 uppercase mb-6 flex items-center gap-2"><i class="fas fa-chart-line"></i> Sebaran Desa</h3>
+                    <div class="h-[400px]"><canvas id="mainChart"></canvas></div>
+                </div>
+                <div class="glass p-8 flex flex-col">
+                    <h3 class="text-xs font-black text-emerald-500 uppercase mb-6 flex items-center gap-2"><i class="fas fa-biohazard"></i> Diagnosis Terbanyak</h3>
+                    <div id="icdList" class="space-y-4 overflow-y-auto max-h-[350px] pr-2"></div>
+                </div>
+            </div>
+
+            <div class="glass p-8 border-l-8 border-emerald-500 bg-emerald-500/5 mb-8">
+                <h3 class="text-xs font-black text-emerald-500 uppercase mb-3"><i class="fas fa-brain"></i> Ana</h3>
+                <div id="aiEvaluation" class="text-sm leading-relaxed opacity-80 italic">Menunggu input data...</div>
+            </div>
+
+            <div id="validationLog" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // MASTER DATABASE
+        const ICD_DATA = {
+            "K04.0": "Pulpitis (Radang Pulpa Gigi)", 
+            "K04.1": "Necrosis of Pulp", 
+            "K08.3": "Retained Dental Root",
+            "K02.1": "Caries of Dentine", 
+            "K04.6": "Periapical Abscess", 
+            "K30": "Dyspepsia (Maag)",
+            "I10": "Hypertension (Darah Tinggi)", 
+            "M79.1": "Myalgia (Nyeri Otot)", 
+            "J06.9": "ISPA Akut",
+            "J00": "Nasofaringitis (Flu)", 
+            "Z34": "Kontrol Kehamilan", 
+            "Z00": "General Check-up",
+            "A16": "TBC Paru (Klinis)", 
+            "A15": "TBC Paru (BTA+)", 
+            "H10": "Conjunctivitis",
+            "M54.5": "Low Back Pain", 
+            "R51": "Headache", 
+            "K21": "GERD", 
+            "B86": "Scabies",
+            "E11": "Diabetes Melitus Tipe 2", 
+            "J45": "Asthma", 
+            "K02": "Dental Caries"
+        };
+
+        const WILAYAH = ["KIARAPEDES", "PARAKAN GAROKGEK", "CIBEBER", "MARGALUYU", "CIRACAS", "TARINGGUL LANDEUH", "PUSAKAMULYA", "SUMBERSARI", "GARDU", "MEKARJAYA"];
+        const MAP_WILAYAH = { "PARAKAN": "PARAKAN GAROKGEK", "KIARAPEDES": "KIARAPEDES", "CIBEBER": "CIBEBER" };
+        const KONTAK_WILAYAH = {"KIARAPEDES": "628123456789", "PARAKAN GAROKGEK": "628776543210","CIBEBER": "628198765432", "MARGALUYU": "628521122334", "CIRACAS": "628133445566", "PUSAKAMULYA": "628998877665", "TARINGGUL LANDEUH": "628521122334", "SUMBERSARI": "628133445566", "GARDU": "628998877665", "MEKARJAYA": "628358621012"};
+        const URGENT_ICD = ["A15", "A16", "B20", "A01", "A90"];
+
+        let DATA_ASIK = { total: 0, desa: {}, nils: [], icd: {}, raw: [] };
+        let DATA_EPUS = { total: 0, desa: {}, nils: [], icd: {}, raw: [] };
+        let PREV_TOTAL = { asik: 0, epus: 0 };
+        let chartObj = null;
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('themeIcon');
+            icon.className = document.body.classList.contains('light-mode') ? 'fas fa-moon text-blue-600' : 'fas fa-sun text-amber-400';
+            renderAnalysis();
+        }
+
+        // REFINED DIAGNOSIS EXTRACTOR
+        function extractCodes(row) {
+            const str = Object.values(row).join(" ").toUpperCase();
+            return str.match(/[A-Z][0-9][0-9](\.[0-9])?/g) || [];
+        }
+
+        function handleFileUpload(input, type) {
+            const reader = new FileReader();
+            document.getElementById(type === 'asik' ? 'nameAsik' : 'nameEpus').innerText = input.files[0].name;
+            
+            reader.onload = (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                let res = { total: 0, desa: {}, nils: [], icd: {}, raw: json };
+                WILAYAH.forEach(w => res.desa[w] = 0);
+
+                json.forEach(row => {
+                    const rowStr = Object.values(row).join(" ").toUpperCase();
+                    
+                    // NIK Capture
+                    const nik = row['NIK'] || row['No. KTP'] || null;
+                    if(nik) res.nils.push(nik);
+
+                    // Diagnosis Capture (FIXED)
+                    const codes = extractCodes(row);
+                    codes.forEach(c => { 
+                        res.icd[c] = (res.icd[c] || 0) + 1; 
+                        res.total++; 
+                    });
+
+                    // Area Capture
+                    let found = null;
+                    for (let key in MAP_WILAYAH) { if(rowStr.includes(key)) found = MAP_WILAYAH[key]; }
+                    if(!found) WILAYAH.forEach(w => { if(rowStr.includes(w)) found = w; });
+                    if(found) res.desa[found]++;
+                });
+
+                if(type === 'asik') { PREV_TOTAL.asik = DATA_ASIK.total; DATA_ASIK = res; }
+                else { PREV_TOTAL.epus = DATA_EPUS.total; DATA_EPUS = res; }
+                renderAnalysis();
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        }
+
+        function renderAnalysis() {
+            const isLight = document.body.classList.contains('light-mode');
+            const target = parseInt(document.getElementById('targetValue').value) || 0;
+            const search = document.getElementById('searchICD').value.toUpperCase();
+            
+            updateTrend('trendAsik', DATA_ASIK.total, PREV_TOTAL.asik);
+            updateTrend('trendEpus', DATA_EPUS.total, PREV_TOTAL.epus);
+
+            const allNIK = [...DATA_ASIK.nils, ...DATA_EPUS.nils];
+            const dups = allNIK.length - new Set(allNIK).size;
+            const integrity = allNIK.length > 0 ? (100 - (dups/allNIK.length*100)).toFixed(1) : 100;
+            document.getElementById('dataIntegrity').innerText = integrity + "%";
+
+            // URGENT ALERTS
+            const alertArea = document.getElementById('urgentAlertArea');
+            alertArea.innerHTML = ""; alertArea.classList.add('hidden');
+            let urgentMsgs = [];
+            URGENT_ICD.forEach(code => {
+                const gap = (DATA_EPUS.icd[code] || 0) - (DATA_ASIK.icd[code] || 0);
+                if (gap > 0) {
+                    urgentMsgs.push(ICD_DATA[code] || code);
+                    alertArea.classList.remove('hidden');
+                    alertArea.innerHTML += `<div class="glass alert-pulse p-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fas fa-biohazard text-red-500"></i><p class="text-sm font-bold">${ICD_DATA[code] || code}: Gap ${gap} Kasus!</p></div><span class="text-[9px] bg-red-600 px-2 py-1 rounded">PRIORITAS</span></div>`;
+                }
+            });
+
+            // CHART & LOGS
+            const dAsik = WILAYAH.map(w => DATA_ASIK.desa[w] || 0);
+            const dEpus = WILAYAH.map(w => DATA_EPUS.desa[w] || 0);
+            let pending = 0;
+            const log = document.getElementById('validationLog'); log.innerHTML = "";
+
+            WILAYAH.forEach((desa, i) => {
+                const diff = dEpus[i] - dAsik[i];
+                if(diff > 0) {
+                    pending += diff;
+                    const waLink = `https://wa.me/${KONTAK_WILAYAH[desa] || ''}?text=Halo%20Admin%20Desa%20${desa},%20mohon%20bantuannya%20untuk%20sinkronisasi%20data.%20Terdapat%20selisih%20${diff}%20data%20antara%20e-PKM%20dan%20ASIK.`;
+                    log.innerHTML += `<div class="glass p-5 flex justify-between items-center border-l-4 ${diff > target/2 ? 'border-red-500' : 'border-emerald-500'}"><div><p class="text-[9px] font-bold opacity-40 uppercase">${desa}</p><p class="text-xl font-bold mono">${diff}</p></div><a href="${waLink}" target="_blank" class="text-emerald-500 hover:scale-125 transition-all"><i class="fab fa-whatsapp text-2xl"></i></a></div>`;
+                }
+            });
+
+            document.getElementById('statAsik').innerText = DATA_ASIK.total;
+            document.getElementById('statEpus').innerText = DATA_EPUS.total;
+            document.getElementById('totalPending').innerText = pending;
+
+            if(chartObj) chartObj.destroy();
+            chartObj = new Chart(document.getElementById('mainChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: WILAYAH,
+                    datasets: [
+                        { label: 'ASIK', data: dAsik, backgroundColor: '#10b981', borderRadius: 8 },
+                        { label: 'e-PKM', data: dEpus, backgroundColor: '#06b6d4', borderRadius: 8 },
+                        { label: 'Target', data: WILAYAH.map(()=>target), type: 'line', borderColor: '#ef4444', borderDash:[5,5], pointRadius:0 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: isLight ? '#000' : '#fff' } } }, scales: { y: { ticks: { color: isLight ? '#000' : '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: isLight ? '#000' : '#fff' } } } }
+            });
+
+            // HIGH FREQ DIAGNOSIS (FIXED FILTER)
+            const filtered = Object.entries(DATA_EPUS.icd)
+                .filter(([c]) => c.includes(search) || (ICD_DATA[c] && ICD_DATA[c].toUpperCase().includes(search)))
+                .sort((a,b)=>b[1]-a[1]).slice(0,10);
+            
+            document.getElementById('icdList').innerHTML = filtered.length > 0 ? filtered.map(([c, v]) => `
+                <div class="flex flex-col border-b border-white/5 pb-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-black text-xs ${URGENT_ICD.includes(c) ? 'text-red-500' : 'text-emerald-400'}">${c}</span>
+                        <span class="mono text-xs font-bold">${v} Case</span>
+                    </div>
+                    <span class="text-[9px] opacity-60 uppercase">${ICD_DATA[c] || 'Other Diagnosis'}</span>
+                </div>`).join('') : '<p class="text-xs opacity-40 italic">Tidak ada diagnosis ditemukan</p>';
+
+            document.getElementById('aiEvaluation').innerText = `Analisis Kiarapedes: Skor trust data ${integrity}%. ${urgentMsgs.length > 0 ? 'Peringatan pada penyakit ' + urgentMsgs.join(', ') + '. ' : ''}Prioritas sinkronisasi desa dengan gap > ${target/2} kasus.`;
+        }
+
+        function updateTrend(elemId, current, prev) {
+            const el = document.getElementById(elemId);
+            if(prev === 0 || current === prev) { el.classList.add('opacity-0'); return; }
+            el.classList.remove('opacity-0');
+            const diff = current - prev;
+            el.innerHTML = diff > 0 ? `↑ ${diff}` : `↓ ${Math.abs(diff)}`;
+            el.className = `text-sm font-bold ${diff > 0 ? 'trend-up' : 'trend-down'}`;
+        }
+
+        function exportMergedExcel() {
+            if(!DATA_ASIK.raw.length && !DATA_EPUS.raw.length) return alert("Upload data dulu!");
+            const ws = XLSX.utils.json_to_sheet([...DATA_ASIK.raw, ...DATA_EPUS.raw]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Merged_Data");
+            XLSX.writeFile(wb, "PKM_Kiarapedes_Master.xlsx");
+        }
+
+        function copyWeeklySummary() {
+            const s = `*LAPORAN INTELLI-PKM KIARAPEDES*\n\n✅ ASIK: ${DATA_ASIK.total}\n🏥 e-PKM: ${DATA_EPUS.total}\n⚠️ Gap Total: ${document.getElementById('totalPending').innerText}\n💎 Trust: ${document.getElementById('dataIntegrity').innerText}\n\n_Generated by Kiarapedes Analytics Engine_`;
+            navigator.clipboard.writeText(s); alert("Summary disalin ke clipboard!");
+        }
+
+        function exportLaporanPDF() {
+            html2pdf().from(document.getElementById('printArea')).set({ margin: 10, filename: 'Report_Kiarapedes.pdf', jsPDF: { orientation: 'landscape' } }).save();
+        }
+    </script>
+</body>
+</html>
