@@ -20,32 +20,89 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        :root { --bg-body: #f1f5f9; --bg-card: #ffffff; --text-main: #2563eb; --sidebar-width: 280px; }
-        .dark { --bg-body: #29293d; --bg-card: #1e293b; --text-main: #38bdf8; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow: hidden; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+    :root { 
+        --bg-body: #f1f5f9; 
+        --bg-card: #ffffff; 
+        --text-main: #2563eb; 
+        --sidebar-width: 280px; 
+        --sidebar-closed-width: 72px; /* Lebar saat hanya ikon */
+        --accent: #10b981; 
+    }
+    .dark { --bg-body: #29293d; --bg-card: #1e293b; --text-main: #38bdf8; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow: hidden; }
 
-        #sidebar { width: var(--sidebar-width); transition: 0.3s; z-index: 50; }
-        #sidebar.closed { transform: translateX(-100%); margin-left: calc(var(--sidebar-width) * -1); }
-        .card-custom { background: var(--bg-card); border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .dark .card-custom { border-color: #1e293b; }
-        
-        .nav-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: 0.2s; color: #94a3b8; font-weight: 600; text-align: left; }
-        .nav-btn.active { background: var(--accent); 
-        color: white; 
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
-        .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
+    /* SIDEBAR BASE */
+    #sidebar { 
+        width: var(--sidebar-width); 
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        z-index: 50; 
+        overflow-x: hidden; 
+        white-space: nowrap; /* Mencegah teks turun ke bawah saat menyempit */
+    }
 
-        .input-modern { width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.05); border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600; font-size: 0.875rem; outline: none; color: inherit; }
-        .dark .input-modern { background: rgba(255,255,255,0.05); }
-        .input-modern:focus { border-color: #10b981; }
+    #sidebar.closed { 
+        width: var(--sidebar-closed-width); 
+    }
 
-        .btn-action { width: 32px; height: 32px; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .kode-tag { display: inline-block; padding: 2px 8px; background: white; color: #475569; border-radius: 4px; font-family: monospace; font-size: 9px; font-weight: bold; margin: 2px; border: 1px solid #e2e8f0; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
-        @media (max-width: 1024px) { #sidebar { position: fixed; height: 100vh; } }
-    </style>
+    /* Sembunyikan semua teks di dalam sidebar saat closed */
+    #sidebar.closed span, 
+    #sidebar.closed p, 
+    #sidebar.closed h1 div,
+    #sidebar.closed .nav-btn span {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    /* Penyesuaian Tombol Compose saat Closed */
+    #sidebar.closed .btn-compose {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        justify-content: center;
+        margin-left: 12px;
+        border-radius: 16px;
+    }
+    #sidebar.closed .btn-compose span { display: none; }
+
+    /* Penyesuaian Navigasi saat Closed */
+    .nav-btn { 
+        width: calc(var(--sidebar-width) - 20px); 
+        display: flex; 
+        align-items: center; 
+        padding: 12px 24px; 
+        border-radius: 0 24px 24px 0; 
+        transition: all 0.2s; 
+        color: #94a3b8; 
+        font-weight: 600; 
+        margin-bottom: 2px;
+        min-width: var(--sidebar-width);
+    }
+    
+    /* Pastikan Ikon tetap di tengah saat closed */
+    .nav-btn i {
+        min-width: 24px;
+        text-align: center;
+        margin-right: 12px;
+    }
+
+    .nav-btn.active { background: #d3e3fd; color: #041e49; }
+    .dark .nav-btn.active { background: #004a77; color: #c2e7ff; }
+    .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
+
+    /* Utility */
+    .card-custom { background: var(--bg-card); border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .input-modern { width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.05); border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600; font-size: 0.875rem; outline: none; color: inherit; }
+    .btn-action { width: 32px; height: 32px; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+
+    @media (max-width: 1024px) { 
+        #sidebar { position: fixed; height: 100vh; } 
+        #sidebar.closed { width: 0; } /* Di HP lebih baik benar-benar hilang */
+    }
+</style>
 </head>
 <body class="min-h-screen flex text-sm">
 
@@ -60,44 +117,50 @@
     </div>
 </div>
 
-<aside id="sidebar" class="bg-slate-900 text-white flex flex-col shrink-0 overflow-hidden">
-    <div class="p-6 border-b border-slate-800 flex items-center gap-4">
-        <div class="fas fa-archive style="font-size:30px; color:yellow"></div>
-        <div>
-            <h1 class="text-xl font-black italic leading-none">E-<span class="text-emerald-500">ARSIP</span></h1>
-            <p class="text-[8px] font-bold uppercase tracking-widest text-slate-500">Puskesmas Kiarapedes</p>
+<aside id="sidebar" class="bg-slate-900 text-white flex flex-col shrink-0 overflow-hidden border-r border-slate-800">
+    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+        <button onclick="document.getElementById('sidebar').classList.toggle('closed')" 
+                class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors">
+            <i class="fas fa-bars text-lg"></i>
+        </button>
+        <div class="flex items-center gap-2">
+            <div class="fas fa-archive" style="font-size:24px; color:yellow"></div>
+            <div>
+                <h1 class="text-lg font-black italic leading-none">E-<span class="text-emerald-500">ARSIP</span></h1>
+            </div>
         </div>
     </div>
     
-    <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-    <p class="text-[14px] font-bold text-slate-500 uppercase px-4 py-2">Menu</p>
-    
-    <button onclick="switchMode('arsip')" id="btn-arsip" class="nav-btn active">
-        <i class="fas fa-folder-open w-5" style="font-size:20px; color:LightSlateGray"></i> Arsip Digital
-    </button>
-    
-    <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn">
-        <i class="fas fa-file-import w-5" style="font-size:20px; color:LightSlateGray"></i> Surat Masuk
-    </button>
-    
-    <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn">
-        <i class="fas fa-file-export w-5" style="font-size:20px; color:LightSlateGray"></i> Surat Keluar
-    </button>
-    
-    <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn">
-        <i class="fas fa-book w-5" style="font-size:20px; color:LightSlateGray"></i> Buku Agenda
-    </button>
+    <div class="flex-1 overflow-y-auto custom-scrollbar pt-2">
 
-    <a href="https://puskesmaskiarapedes.blogspot.com/p/form-surat-tugas.html" target="_blank" class="nav-btn">
-        <i class="fas fa-edit w-5" style="font-size:20px; color:LightSlateGray"></i> Buat Surat Tugas
-    </a>
+        <p class="text-[11px] font-bold text-slate-500 uppercase px-6 py-2 tracking-wider">Menu Utama</p>
         
-        <div class="pt-4 mt-4 border-t border-slate-800">
-            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5" style="font-size:20px; color:LightSlateGray"></i> Panduan & Pedoman</button>
-            <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5" id="syncIcon" style="font-size:20px; color:DeepSkyBlue"></i> Sinkronisasi</button>
-            <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5" style="font-size:20px; color:MediumSeaGreen"></i> Export Excel</button>
-            <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5" id="themeIcon" style="font-size:20px; color:white"></i> Ganti Tema</button>
-            <button onclick="logout()" class="nav-btn"><i class="fas fa-power-off w-5" style="font-size:20px; color:red"></i> Keluar</button>
+        <button onclick="switchMode('arsip')" id="btn-arsip" class="nav-btn active">
+            <i class="fas fa-inbox w-5 text-lg"></i> Arsip Digital
+        </button>
+        
+        <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn">
+            <i class="fas fa-file-import w-5 text-lg"></i> Surat Masuk
+        </button>
+        
+        <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn">
+            <i class="fas fa-file-export w-5 text-lg"></i> Surat Keluar
+        </button>
+        
+        <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn">
+            <i class="fas fa-book w-5 text-lg"></i> Buku Agenda
+        </button>
+
+        <a href="https://puskesmaskiarapedes.blogspot.com/p/form-surat-tugas.html" target="_blank" class="nav-btn">
+            <i class="fas fa-edit w-5 text-lg"></i> Buat Surat Tugas
+        </a>
+        
+        <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
+            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> Panduan</button>
+            <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> Sinkronisasi</button>
+            <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> Export Excel</button>
+            <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> Tema</button>
+            <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-rose-500"></i> Keluar</button>
         </div>
     </div>
 </aside>
@@ -105,7 +168,6 @@
 <div id="mainContent" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
     <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-6 shrink-0">
         <div class="flex items-center gap-4">
-            <button onclick="document.getElementById('sidebar').classList.toggle('closed')" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fas fa-bars"></i></button>
             <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
         </div>
         <div id="clock" class="text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">--:--:--</div>
