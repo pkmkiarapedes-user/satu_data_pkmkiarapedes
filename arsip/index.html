@@ -489,57 +489,60 @@ function generatePreview() {
         reader.readAsDataURL(file);
     };
 
-    document.getElementById('formArsip').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnSimpan');
-        const progContainer = document.getElementById('progressContainer');
-        const progBar = document.getElementById('progressBar');
-        
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MENGIRIM...';
-        progContainer.classList.remove('hidden');
+    // Pastikan bagian ini diubah di dalam <script> HTML Anda
+document.getElementById('formArsip').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnSimpan');
+    const progContainer = document.getElementById('progressContainer');
+    const progBar = document.getElementById('progressBar');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
+    progContainer.classList.remove('hidden');
 
-        const payload = {
-            token: sessionStorage.getItem('arsip_session_pin'),
-            action: editIndex !== null ? "update" : "upload",
-            mode: currentMode,
-            no: generatePreview(),
-            nama: document.getElementById('arsipNama').value.toUpperCase(),
-            klaster: document.getElementById('selKlaster').value,
-            sub: document.getElementById('selSub').value,
-            jenisSurat: document.getElementById('selJenisSurat').value,
-            tgl: document.getElementById('arsipTgl').value,
-            asal: document.getElementById('inpAsal').value,
-            tujuan: document.getElementById('inpTujuan').value,
-            fileData: fileData ? fileData.base64 : null 
-        };
+    // Ambil nomor surat dari hasil preview terbaru
+    const nomorSurat = generatePreview();
 
-        let p = 0;
-        const interval = setInterval(() => {
-            p += (100 - p) * 0.1;
-            progBar.style.width = p + '%';
-            document.getElementById('progressText').innerText = `UPLOADING: ${Math.round(p)}%`;
-        }, 200);
-
-        try {
-            const resp = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
-            const res = await resp.json();
-            if (res.status === "success") {
-                clearInterval(interval);
-                progBar.style.width = '100%';
-                alert("✅ Berhasil!");
-                resetForm();
-                syncFromGAS();
-            } else { throw new Error(res.msg); }
-        } catch (err) {
-            clearInterval(interval);
-            alert("❌ Gagal: " + err.message);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "SIMPAN & ARSIPKAN";
-        }
+    const payload = {
+        token: "2026", // Kirim PIN murni untuk validasi PIN_MASTER di GAS
+        action: editIndex !== null ? "update" : "upload",
+        mode: currentMode,
+        no: nomorSurat,
+        nama: document.getElementById('arsipNama').value.toUpperCase(),
+        klaster: document.getElementById('selKlaster').value,
+        sub: document.getElementById('selSub').value,
+        jenisSurat: document.getElementById('selJenisSurat').value,
+        tgl: document.getElementById('arsipTgl').value,
+        asal: document.getElementById('inpAsal').value,
+        tujuan: document.getElementById('inpTujuan').value,
+        // Pastikan ini mengambil string base64 yang sudah diproses di onchange
+        fileData: fileData ? fileData.base64 : null 
     };
 
+    try {
+        const resp = await fetch(GAS_URL, { 
+            method: "POST", 
+            body: JSON.stringify(payload) 
+        });
+        
+        const res = await resp.json();
+
+        if (res.status === "success") {
+            progBar.style.width = '100%';
+            alert("✅ Berhasil: " + res.msg);
+            resetForm();
+            syncFromGAS();
+        } else {
+            throw new Error(res.msg);
+        }
+    } catch (err) {
+        alert("❌ Gagal Simpan: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "SIMPAN & ARSIPKAN";
+    }
+};
+	
     async function syncFromGAS() {
         const syncIcon = document.getElementById('syncIcon');
         syncIcon.classList.add('fa-spin');
