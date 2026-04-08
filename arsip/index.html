@@ -620,7 +620,7 @@ const maxNo = database
         return p.length > 1 ? parseInt(p[1], 10) : 0;
     })
     .reduce((a, b) => Math.max(a, b), 0);
-document.getElementById('noUrut').placeholder = "No urut Terakhir: " + maxNo;
+document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
 		
     function cetakBarcode(i) {
         const data = database[i];
