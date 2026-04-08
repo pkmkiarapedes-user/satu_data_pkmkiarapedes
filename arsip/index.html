@@ -20,80 +20,131 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
     :root { 
+        /* TEMA TERANG (Light Mode) */
         --bg-body: #f3f7f3; 
-        --bg-card: #0a0606; 
-        --text-main: #8a9199; 
+        --bg-card: #ffffff;           /* Kartu putih di mode terang */
+        --text-main: #1e293b;         /* Teks gelap di mode terang */
+        --text-muted: #64748b;        /* Teks abu-abu untuk deskripsi */
+        --input-bg: #f8fafc;          /* Background input terang */
+        --input-border: #e2e8f0;
+        --sidebar-bg: #0f172a;        /* Sidebar tetap gelap agar kontras */
+        --sidebar-text: #ffffff;
+        
         --sidebar-width: 280px; 
         --sidebar-closed-width: 72px; 
         --accent: #10b981; 
     }
-    .dark { --bg-body: #1e293b; --bg-card: #1e293b; --text-main: #f1f5f9; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow: hidden; }
 
-    /* SIDEBAR BASE */
+    .dark { 
+        /* TEMA GELAP (Dark Mode) */
+        --bg-body: #0f172a;           /* Background biru dongker sangat gelap */
+        --bg-card: #1e293b;           /* Kartu sedikit lebih terang dari body */
+        --text-main: #f1f5f9;         /* Teks putih kusam (tidak perih di mata) */
+        --text-muted: #94a3b8;
+        --input-bg: #334155;          /* Input gelap */
+        --input-border: #475569;
+        --sidebar-bg: #020617;        /* Sidebar lebih gelap lagi */
+    }
+
+    body { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        background-color: var(--bg-body); 
+        color: var(--text-main); 
+        transition: all 0.3s ease; /* Transisi halus saat ganti tema */
+        overflow-x: hidden; 
+    }
+
+    /* SIDEBAR */
     #sidebar { 
         width: var(--sidebar-width); 
+        background-color: var(--sidebar-bg);
+        color: var(--sidebar-text);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         z-index: 50; 
         overflow: hidden; 
         white-space: nowrap;
     }
 
-    #sidebar.closed { 
-        width: var(--sidebar-closed-width); 
-    }
+    #sidebar.closed { width: var(--sidebar-closed-width); }
 
-    /* Perbaikan Presisi Sidebar: Sembunyikan teks sepenuhnya saat closed */
+    /* Sembunyikan teks sidebar saat closed */
     #sidebar.closed span, 
     #sidebar.closed p, 
     #sidebar.closed h1,
     #sidebar.closed .nav-btn span {
         opacity: 0;
         visibility: hidden;
-        transition: opacity 0.1s;
     }
 
+    /* TOMBOL NAVIGASI */
     .nav-btn { 
         width: 100%; 
         display: flex; 
         align-items: center; 
         padding: 12px 24px; 
         border-radius: 0 24px 24px 0; 
-        transition: all 0.2s; 
-        color: #ffffff; 
+        color: #94a3b8; /* Warna default abu-abu */
         font-weight: 600; 
         margin-bottom: 2px;
-    }
-    
-    .nav-btn i {
-        min-width: 24px;
-        text-align: center;
-        margin-right: 12px;
+        transition: 0.2s;
     }
 
-    /* Dorong teks keluar saat sidebar mengecil */
-    #sidebar.closed .nav-btn i {
-        margin-right: 40px; 
+    .nav-btn i { min-width: 24px; text-align: center; margin-right: 12px; }
+    #sidebar.closed .nav-btn i { margin-right: 40px; }
+
+    .nav-btn.active { background: #0a6cc9; color: #ffffff; }
+    .dark .nav-btn.active { background: #38bdf8; color: #020617; } /* Lebih terang di mode gelap */
+    .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
+
+    /* KARTU & INPUT (ADAPTIF) */
+    .card-custom { 
+        background: var(--bg-card); 
+        border: 1px solid var(--input-border); 
+        border-radius: 1.5rem; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+        color: var(--text-main);
     }
 
-    .nav-btn.active { background: #0a6cc9; color: #f5f6f8; }
-    .dark .nav-btn.active { background: #004a77; color: #c2e7ff; }
-    .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
+    .input-modern { 
+        width: 100%; 
+        padding: 0.75rem 1rem; 
+        background: var(--input-bg); 
+        border: 2px solid var(--input-border); 
+        border-radius: 0.75rem; 
+        font-weight: 600; 
+        font-size: 0.875rem; 
+        outline: none; 
+        color: var(--text-main); /* Teks di dalam input mengikuti tema */
+    }
 
-    .card-custom { background: var(--bg-card); border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .input-modern { width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.05); border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600; font-size: 0.875rem; outline: none; color: inherit; }
+    /* Mengatur warna Placeholder agar adaptif */
+    .input-modern::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+
+    /* Select Dropdown adaptif */
+    select.input-modern option {
+        background-color: var(--bg-card);
+        color: var(--text-main);
+    }
+
     .btn-action { width: 32px; height: 32px; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+
+    /* Scrollbar Adaptif */
     .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
     @media (max-width: 1024px) { 
         #sidebar { position: fixed; height: 100vh; } 
         #sidebar.closed { width: 0; }
     }
 </style>
+	
 </head>
 <body class="min-h-screen flex text-sm">
 
@@ -567,15 +618,46 @@
     }
 
     function togglePedoman() {
-        const m = document.getElementById('modalPedoman');
-        if(m.classList.contains('hidden')) {
-            let h = `<div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200">
-                <h3 class="text-emerald-700 font-black text-sm mb-4">Panduan Operasional</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]">
-                    <div><p class="font-black">A. AKSES</p><p>Gunakan PIN 2026. Klik Sinkronisasi secara berkala.</p></div>
-                    <div><p class="font-black">B. FILTER</p><p>Gunakan dropdown filter untuk menyaring per Klaster atau Jenis Dokumen.</p></div>
+    const m = document.getElementById('modalPedoman');
+    if(m.classList.contains('hidden')) {
+        let h = `
+        <div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200 dark:border-emerald-800">
+            <h3 class="text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm mb-4 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i> Panduan Operasional Sistem
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] leading-relaxed">
+                <div>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">A. AKSES & KEAMANAN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Gunakan PIN <b>2026</b> untuk masuk.</li>
+                        <li>Klik <b>Sinkronisasi </b> setiap kali membuka aplikasi untuk data terbaru.</li>
+                    </ul>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">B. INPUT DOKUMEN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Pilih Klaster & Sub untuk kode otomatis.</li>
+                        <li>Perihal minimal 5 karakter & gunakan huruf KAPITAL.</li>
+                        <li>File PDF maksimal <b>2MB</b>.</li>
+                    </ul>
                 </div>
-            </div>`;
+                <div>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">C. PENCARIAN & MANAJEMEN</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Filter Klaster untuk menyaring data per bidang.</li>
+                        <li><b>Export Excel</b> akan mengunduh data sesuai hasil pencarian/filter Anda.</li>
+                        <li>Gunakan ikon <b>QR</b> untuk mencetak label fisik map.</li>
+                    </ul>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">D. KOREKSI DATA</p>
+                    <ul class="list-disc ml-4 text-slate-500">
+                        <li>Klik <b>Pensil</b> untuk edit, klik <b>Sampah</b> untuk hapus.</li>
+                        <li>Penghapusan memerlukan verifikasi PIN kembali.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+		<div class="col-span-full mb-2">
+            <h3 class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] mb-4">Daftar Kode Klasifikasi (Perbup No 135 Th 2023)</h3>
+        </div>
+        `;
             Object.keys(KLASTER).forEach(k => {
                 const s = CLUSTER_STYLES[k];
                 h += `<div class="p-4 ${s.bg} rounded-2xl border border-slate-100"><div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}"><i class="fas ${s.icon}"></i> ${k}</div><div class="flex flex-wrap gap-1">${KLASTER[k].map(c => `<span class="px-1.5 py-0.5 bg-white rounded text-[8px] border">${c}</span>`).join('')}</div></div>`;
