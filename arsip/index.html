@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="id" class="light">
 	
-	<script>
+<script>
     (function() {
         const session = localStorage.getItem('pkm_session_status');
-        if (session !== 'AUTHORIZED') {
+        // Konsistensi dengan verifikasiPin: cek authorized atau session PIN
+        if (session !== 'AUTHORIZED' && !sessionStorage.getItem('arsip_session_pin')) {
             alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
             window.location.href = "index.html";
         }
@@ -23,52 +24,40 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
     :root { 
         --bg-body: #f1f5f9; 
-        --bg-card: #ffffff; 
-        --text-main: #2563eb; 
+        --bg-card: #0a0606; 
+        --text-main: #f1f5f9; 
         --sidebar-width: 280px; 
-        --sidebar-closed-width: 72px; /* Lebar saat hanya ikon */
+        --sidebar-closed-width: 72px; 
         --accent: #10b981; 
     }
-    .dark { --bg-body: #29293d; --bg-card: #1e293b; --text-main: #38bdf8; }
+    .dark { --bg-body: #1e293b; --bg-card: #1e293b; --text-main: #f1f5f9; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow: hidden; }
 
     /* SIDEBAR BASE */
     #sidebar { 
         width: var(--sidebar-width); 
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         z-index: 50; 
-        overflow-x: hidden; 
-        white-space: nowrap; /* Mencegah teks turun ke bawah saat menyempit */
+        overflow: hidden; 
+        white-space: nowrap;
     }
 
     #sidebar.closed { 
         width: var(--sidebar-closed-width); 
     }
 
-    /* Sembunyikan semua teks di dalam sidebar saat closed */
+    /* Perbaikan Presisi Sidebar: Sembunyikan teks sepenuhnya saat closed */
     #sidebar.closed span, 
     #sidebar.closed p, 
-    #sidebar.closed h1 div,
+    #sidebar.closed h1,
     #sidebar.closed .nav-btn span {
         opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
+        visibility: hidden;
+        transition: opacity 0.1s;
     }
 
-    /* Penyesuaian Tombol Compose saat Closed */
-    #sidebar.closed .btn-compose {
-        width: 48px;
-        height: 48px;
-        padding: 0;
-        justify-content: center;
-        margin-left: 12px;
-        border-radius: 16px;
-    }
-    #sidebar.closed .btn-compose span { display: none; }
-
-    /* Penyesuaian Navigasi saat Closed */
     .nav-btn { 
-        width: calc(var(--sidebar-width) - 20px); 
+        width: 100%; 
         display: flex; 
         align-items: center; 
         padding: 12px 24px; 
@@ -77,21 +66,23 @@
         color: #94a3b8; 
         font-weight: 600; 
         margin-bottom: 2px;
-        min-width: var(--sidebar-width);
     }
     
-    /* Pastikan Ikon tetap di tengah saat closed */
     .nav-btn i {
         min-width: 24px;
         text-align: center;
         margin-right: 12px;
     }
 
+    /* Dorong teks keluar saat sidebar mengecil */
+    #sidebar.closed .nav-btn i {
+        margin-right: 40px; 
+    }
+
     .nav-btn.active { background: #d3e3fd; color: #041e49; }
     .dark .nav-btn.active { background: #004a77; color: #c2e7ff; }
     .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
 
-    /* Utility */
     .card-custom { background: var(--bg-card); border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     .input-modern { width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.05); border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600; font-size: 0.875rem; outline: none; color: inherit; }
     .btn-action { width: 32px; height: 32px; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -100,7 +91,7 @@
 
     @media (max-width: 1024px) { 
         #sidebar { position: fixed; height: 100vh; } 
-        #sidebar.closed { width: 0; } /* Di HP lebih baik benar-benar hilang */
+        #sidebar.closed { width: 0; }
     }
 </style>
 </head>
@@ -124,52 +115,43 @@
             <i class="fas fa-bars text-lg"></i>
         </button>
         <div class="flex items-center gap-2">
-            <div class="fas fa-archive" style="font-size:24px; color:yellow"></div>
-            <div>
-                <h1 class="text-lg font-black italic leading-none">E-<span class="text-emerald-500">ARSIP</span></h1>
-            </div>
+            <div class="fas fa-folder-open" style="font-size:24px; color:#ffff00"></div>
+            <h1><div class="text-lg font-black italic leading-none">E-<span class="text-emerald-500">ARSIP</span></div></h1>
         </div>
     </div>
     
     <div class="flex-1 overflow-y-auto custom-scrollbar pt-2">
-
         <p class="text-[11px] font-bold text-slate-500 uppercase px-6 py-2 tracking-wider">Menu Utama</p>
         
         <button onclick="switchMode('arsip')" id="btn-arsip" class="nav-btn active">
-            <i class="fas fa-inbox w-5 text-lg"></i> Arsip Digital
+            <i class="fas fa-inbox w-5 text-lg"></i> <span>Arsip Digital</span>
         </button>
-        
         <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn">
-            <i class="fas fa-file-import w-5 text-lg"></i> Surat Masuk
+            <i class="fas fa-file-import w-5 text-lg"></i> <span>Surat Masuk</span>
         </button>
-        
         <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn">
-            <i class="fas fa-file-export w-5 text-lg"></i> Surat Keluar
+            <i class="fas fa-file-export w-5 text-lg"></i> <span>Surat Keluar</span>
         </button>
-        
         <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn">
-            <i class="fas fa-book w-5 text-lg"></i> Buku Agenda
+            <i class="fas fa-book w-5 text-lg"></i> <span>Buku Agenda</span>
         </button>
-
         <a href="https://puskesmaskiarapedes.blogspot.com/p/form-surat-tugas.html" target="_blank" class="nav-btn">
-            <i class="fas fa-edit w-5 text-lg"></i> Buat Surat Tugas
+            <i class="fas fa-edit w-5 text-lg"></i> <span>Buat Surat Tugas</span>
         </a>
         
         <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
-            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> Panduan</button>
-            <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> Sinkronisasi</button>
-            <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> Export Excel</button>
-            <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> Tema</button>
-            <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-rose-500"></i> Keluar</button>
+            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> <span>Panduan</span></button>
+            <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> <span>Sinkronisasi</span></button>
+            <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> <span>Export Excel</span></button>
+            <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> <span>Tema</span></button>
+            <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-rose-500"></i> <span>Keluar</span></button>
         </div>
     </div>
 </aside>
 
 <div id="mainContent" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
     <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-6 shrink-0">
-        <div class="flex items-center gap-4">
-            <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
-        </div>
+        <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
         <div id="clock" class="text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">--:--:--</div>
     </header>
 
@@ -244,8 +226,8 @@
                         </label>
 						
 						<div id="progressContainer" class="hidden w-full bg-blue-50 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden border border-blue-100 dark:border-blue-900">
-						<div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(37,99,235,0.5)]" style="width: 0%"></div>
-						<p id="progressText" class="text-[10px] font-bold text-blue-700 dark:text-blue-400 mt-1.5 text-center tracking-widest">MEMPROSES... 0%</p>
+						    <div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(37,99,235,0.5)]" style="width: 0%"></div>
+						    <p id="progressText" class="text-[10px] font-bold text-blue-700 dark:text-blue-400 mt-1.5 text-center tracking-widest">MEMPROSES... 0%</p>
 						</div>
 						
                         <button type="submit" id="btnSimpan" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-emerald-700 uppercase">Simpan & Arsipkan</button>
@@ -255,14 +237,33 @@
             </div>
 
             <div class="xl:col-span-8">
-                <div class="card-custom p-4 mb-6 bg-white dark:bg-slate-900 flex gap-4">
-                    <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari nomor atau perihal..." class="input-modern flex-1">
+                <div class="card-custom p-4 mb-6 bg-white dark:bg-slate-900 flex flex-wrap gap-4">
+                    <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari nomor atau perihal..." class="input-modern flex-1 min-w-[200px]">
+                    
+                    <select id="filterKlaster" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Semua Klaster</option>
+                    </select>
+
+                    <select id="filterJenis" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Semua Jenis</option>
+                        <option value="SK">SK</option>
+                        <option value="SOP">SOP</option>
+                        <option value="ST">ST</option>
+                        <option value="UND">UNDANGAN</option>
+                        <option value="MOU">MOU</option>
+                        <option value="PERMANEN">PERMANEN</option>
+                    </select>
                 </div>
+
                 <div class="card-custom overflow-hidden bg-white dark:bg-slate-900 shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-[11px]">
                             <thead class="bg-slate-50 dark:bg-slate-800 uppercase font-black text-slate-500 text-[9px]">
-                                <tr id="tableHead"></tr>
+                                <tr>
+                                    <th class="p-4">Informasi Dokumen</th>
+                                    <th class="p-4 text-center">Jenis</th>
+                                    <th class="p-4 text-center">Aksi</th>
+                                </tr>
                             </thead>
                             <tbody id="tableBody" class="divide-y dark:divide-slate-800"></tbody>
                         </table>
@@ -284,7 +285,7 @@
 <div id="modalPedoman" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-4 backdrop-blur-md">
     <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div class="p-6 border-b dark:border-slate-800 flex justify-between items-center bg-emerald-600 text-white">
-            <h2 class="text-lg font-black uppercase italic">Panduan & Pedoman Sistem </h2>
+            <h2 class="text-lg font-black uppercase italic">Panduan Sistem </h2>
             <button onclick="togglePedoman()" class="w-10 h-10 rounded-full bg-white/20"><i class="fas fa-times"></i></button>
         </div>
         <div id="pedomanContent" class="p-8 overflow-y-auto custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -292,12 +293,12 @@
 </div>
 
 <script>
-	const GAS_URL = "https://script.google.com/macros/s/AKfycbyBHXJpJ2OxXNTWs8QeRqfphIzASX1L7B_cWWeVsJ6SV3YsubGst7jB_3SyNRJjjflWBw/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBHXJpJ2OxXNTWs8QeRqfphIzASX1L7B_cWWeVsJ6SV3YsubGst7jB_3SyNRJjjflWBw/exec";
     const PIN_HASH = "MjAyNg=="; 
     let database = JSON.parse(localStorage.getItem('db_arsip_kpds')) || [];
     let currentMode = 'arsip';
     let editIndex = null;
-    let currentEditNo = null; // Tambahkan ini untuk mengunci nomor saat edit
+    let currentEditNo = null; 
     let fileData = null;
 
     const KLASTER = {
@@ -316,23 +317,28 @@
         "Lintas Klaster": { icon: "fa-layer-group", color: "text-indigo-600", bg: "bg-indigo-50" }
     };
 
-    // --- SISTEM LOGIN ---
     function verifikasiPin() {
         const pinInput = document.getElementById('pinInput').value;
         if (btoa(pinInput) === PIN_HASH) {
             sessionStorage.setItem('arsip_session_pin', pinInput);
+            localStorage.setItem('pkm_session_status', 'AUTHORIZED'); // Sync status
             document.getElementById('modalLogin').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
             initApp();
         } else {
-            alert("⚠️ PIN SALAH! Akses Ditolak.");
+            alert("⚠️ PIN SALAH!");
             document.getElementById('pinInput').value = "";
         }
     }
 
     function initApp() {
         const kSel = document.getElementById('selKlaster');
-        kSel.innerHTML = Object.keys(KLASTER).map(k => `<option value="${k}">${k}</option>`).join('');
+        const fKlaster = document.getElementById('filterKlaster');
+        
+        const options = Object.keys(KLASTER).map(k => `<option value="${k}">${k}</option>`).join('');
+        kSel.innerHTML = options;
+        fKlaster.innerHTML = '<option value="">Semua Klaster</option>' + options;
+
         updateSub();
         syncFromGAS();
         setInterval(() => { 
@@ -340,15 +346,13 @@
         }, 1000);
     }
 
-    // --- NAVIGASI MODE ---
     function switchMode(mode) {
         currentMode = mode;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-' + mode).classList.add('active');
-        document.getElementById('pageTitle').innerText = mode === 'arsip' ? 'Arsip Digital (SK/SOP)' : mode.toUpperCase();
+        document.getElementById('pageTitle').innerText = mode === 'arsip' ? 'Arsip Digital' : mode.toUpperCase();
         document.getElementById('arsipOnly').classList.toggle('hidden', mode !== 'arsip');
         document.getElementById('regOnly').classList.toggle('hidden', mode === 'arsip' || mode === 'agenda');
-        
         resetForm();
         renderTable();
     }
@@ -373,143 +377,82 @@
         const romawi = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"][d.getMonth()];
         const thn = d.getFullYear();
 
-        let nomor = "";
-        if(currentMode === 'arsip') nomor = `${kode}/${no}/${jenis}/PKM-KPDS/${romawi}/${thn}`;
-        else if(currentMode === 'masuk') nomor = `REG-IN/${no}/PKM-KPDS/${romawi}/${thn}`;
-        else nomor = `${kode}/${no}/${jenis}/PKM-KPDS/${romawi}/${thn}`;
+        let nomor = `${kode}/${no}/${jenis}/PKM-KPDS/${romawi}/${thn}`;
+        if(currentMode === 'masuk') nomor = `REG-IN/${no}/PKM-KPDS/${romawi}/${thn}`;
 
         document.getElementById('displayNomor').innerText = nomor;
         return nomor;
     }
 
     document.getElementById('arsipFile').onchange = (e) => {
-    const file = e.target.files[0];
-    const label = document.getElementById('labelFile');
-    
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-        alert("File terlalu besar! Maksimal 2MB.");
-        e.target.value = "";
-        label.innerText = "UPLOAD PDF (MAX 2MB)";
-        return;
-    }
-
-    label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES FILE...';
-    
-    const reader = new FileReader();
-reader.onload = (ev) => {
-    const result = ev.target.result;
-    fileData = { 
-        base64: result, 
-        name: file.name, 
-        type: file.type 
-    };
-    
-    label.innerHTML = `<i class="fas fa-check-circle text-emerald-500"></i> ${file.name}`;
-    label.classList.add('border-emerald-500', 'bg-emerald-50');
-};
-    
-    reader.onerror = () => {
-        alert("Gagal membaca file!");
-        label.innerText = "UPLOAD PDF (MAX 2MB)";
-        fileData = null;
-    };
-    
-    reader.readAsDataURL(file);
-};
-
-   document.getElementById('formArsip').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    // 1. Ambil data input
-    const jenisSurat = document.getElementById('selJenisSurat').value;
-    const noUrut = document.getElementById('noUrut').value;
-    const tgl = document.getElementById('arsipTgl').value;
-    const namaDokumen = document.getElementById('arsipNama').value.trim();
-
-    // 2. Validasi Wajib Isi
-    if (!jenisSurat || !noUrut || !tgl || !namaDokumen) {
-        alert("⚠️ SEMUA KOLOM WAJIB DIISI!");
-        return;
-    }
-
-    // 3. Validasi File (Hanya wajib jika tambah baru)
-    if (editIndex === null && !fileData) {
-        alert("⚠️ Silahkan pilih file PDF terlebih dahulu!");
-        return;
-    }
-
-    const btn = document.getElementById('btnSimpan');
-    const progContainer = document.getElementById('progressContainer');
-    const progBar = document.getElementById('progressBar');
-    const progText = document.getElementById('progressText');
-
-    // Animasi Loading
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
-    progContainer.classList.remove('hidden');
-    
-    const nomorSurat = generatePreview();
-    
-    const payload = {
-        token: sessionStorage.getItem('arsip_session_pin'),
-        action: editIndex !== null ? "update" : "upload",
-        mode: currentMode,
-        no: nomorSurat,
-        nama: namaDokumen.toUpperCase(),
-        klaster: document.getElementById('selKlaster').value,
-        sub: document.getElementById('selSub').value,
-        jenisSurat: jenisSurat,
-        tgl: tgl,
-        asal: document.getElementById('inpAsal').value,
-        tujuan: document.getElementById('inpTujuan').value,
-        fileData: fileData ? fileData.base64 : null 
-    };
-
-    // Simulasi progress (karena fetch asli tidak mendukung progress upload secara native tanpa XHR)
-    let progress = 0;
-    const interval = setInterval(() => {
-        if (progress < 90) {
-            progress += Math.random() * 15;
-            progBar.style.width = Math.min(progress, 90) + '%';
-            progText.innerText = `MENGUNGGAH... ${Math.round(Math.min(progress, 90))}%`;
+        const file = e.target.files[0];
+        const label = document.getElementById('labelFile');
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Maksimal 2MB!");
+            e.target.value = "";
+            return;
         }
-    }, 200);
+        label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            fileData = { base64: ev.target.result.split(',')[1], name: file.name, type: file.type };
+            label.innerHTML = `<i class="fas fa-check-circle text-emerald-500"></i> ${file.name}`;
+        };
+        reader.readAsDataURL(file);
+    };
 
-    try {
-        const resp = await fetch(GAS_URL, { 
-            method: "POST", 
-            body: JSON.stringify(payload) 
-        });
-        const res = await resp.json();
+    document.getElementById('formArsip').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSimpan');
+        const progContainer = document.getElementById('progressContainer');
+        const progBar = document.getElementById('progressBar');
         
-        if (res.status === "success") {
-            clearInterval(interval);
-            progBar.style.width = '100%';
-            progBar.classList.replace('bg-blue-600', 'bg-emerald-500');
-            progText.innerText = "BERHASIL!";
-            
-            setTimeout(() => {
-                alert("✅ Data Berhasil Disimpan!");
-                resetForm(); 
-                syncFromGAS();
-            }, 500);
-        } else {
-            throw new Error(res.msg);
-        }
-    } catch (err) {
-        clearInterval(interval);
-        progBar.classList.replace('bg-blue-600', 'bg-rose-500');
-        progText.innerText = "GAGAL!";
-        alert("❌ Gagal: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "SIMPAN & ARSIPKAN";
-    }
-};
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MENGIRIM...';
+        progContainer.classList.remove('hidden');
 
-    // --- SYNC DATA ---
+        const payload = {
+            token: sessionStorage.getItem('arsip_session_pin'),
+            action: editIndex !== null ? "update" : "upload",
+            mode: currentMode,
+            no: generatePreview(),
+            nama: document.getElementById('arsipNama').value.toUpperCase(),
+            klaster: document.getElementById('selKlaster').value,
+            sub: document.getElementById('selSub').value,
+            jenisSurat: document.getElementById('selJenisSurat').value,
+            tgl: document.getElementById('arsipTgl').value,
+            asal: document.getElementById('inpAsal').value,
+            tujuan: document.getElementById('inpTujuan').value,
+            fileData: fileData ? fileData.base64 : null 
+        };
+
+        let p = 0;
+        const interval = setInterval(() => {
+            p += (100 - p) * 0.1;
+            progBar.style.width = p + '%';
+            document.getElementById('progressText').innerText = `UPLOADING: ${Math.round(p)}%`;
+        }, 200);
+
+        try {
+            const resp = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+            const res = await resp.json();
+            if (res.status === "success") {
+                clearInterval(interval);
+                progBar.style.width = '100%';
+                alert("✅ Berhasil!");
+                resetForm();
+                syncFromGAS();
+            } else { throw new Error(res.msg); }
+        } catch (err) {
+            clearInterval(interval);
+            alert("❌ Gagal: " + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "SIMPAN & ARSIPKAN";
+        }
+    };
+
     async function syncFromGAS() {
         const syncIcon = document.getElementById('syncIcon');
         syncIcon.classList.add('fa-spin');
@@ -519,82 +462,76 @@ reader.onload = (ev) => {
             database = data.database || [];
             localStorage.setItem('db_arsip_kpds', JSON.stringify(database));
             renderTable();
-        } catch(e) { 
-            console.error(e); 
-        } finally { 
-            syncIcon.classList.remove('fa-spin'); 
-        }
+        } catch(e) { console.error(e); } 
+        finally { syncIcon.classList.remove('fa-spin'); }
     }
 
-    // --- TABEL & STATISTIK ---
     function renderTable() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = database.filter(x => 
-        (x.mode || 'arsip') === currentMode && 
-        (x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q))
-    );
-    
-    // Update Statistik
-    document.getElementById('statTotal').innerText = database.length;
-    document.getElementById('statSK').innerText = database.filter(x => x.jenis === 'SK').length;
-    document.getElementById('statSOP').innerText = database.filter(x => x.jenis === 'SOP').length;
-    document.getElementById('statLain').innerText = database.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
-    document.getElementById('statKlaster').innerText = [...new Set(database.map(x => x.klaster))].length;
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const fKlaster = document.getElementById('filterKlaster').value;
+        const fJenis = document.getElementById('filterJenis').value;
 
-    // Render Baris Tabel
-    document.getElementById('tableBody').innerHTML = filtered.map((x) => {
-        // --- LOGIKA MASA RETENSI DINAMIS ---
-        // Menggunakan status retensi langsung dari properti yang dikirim GAS
-        const retensiLabel = x.retensi || "✅ Aktif"; 
-        let retensiColor = "";
+        // Filter Berlapis
+        const filtered = database.filter(x => {
+            const matchMode = (x.mode || 'arsip') === currentMode;
+            const matchQ = x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q);
+            const matchK = fKlaster === "" || x.klaster === fKlaster;
+            const matchJ = fJenis === "" || x.jenis === fJenis;
+            return matchMode && matchQ && matchK && matchJ;
+        });
+        
+        // Update Statistik Berdasarkan Filter Aktif
+        document.getElementById('statTotal').innerText = filtered.length;
+        document.getElementById('statSK').innerText = filtered.filter(x => x.jenis === 'SK').length;
+        document.getElementById('statSOP').innerText = filtered.filter(x => x.jenis === 'SOP').length;
+        document.getElementById('statLain').innerText = filtered.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
+        document.getElementById('statKlaster').innerText = [...new Set(filtered.map(x => x.klaster))].length;
 
-        // Menentukan warna berdasarkan teks status dari GAS
-        if (retensiLabel.includes("PERMANEN")) {
-            retensiColor = "bg-emerald-100 text-emerald-700";
-        } else if (retensiLabel.includes("⚠️") || retensiLabel.includes("INAKTIF") || retensiLabel.includes("habis")) {
-            // Merah berkedip jika sudah masuk masa retensi atau inaktif
-            retensiColor = "bg-rose-100 text-rose-700 animate-pulse";
-        } else if (retensiLabel.includes("🕒") || retensiLabel.includes("Hampir")) {
-            // Kuning jika hampir habis
-            retensiColor = "bg-amber-100 text-amber-700";
-        } else {
-            // Hijau/Slate untuk dokumen aktif
-            retensiColor = "bg-slate-100 text-slate-400";
-        }
+        document.getElementById('tableBody').innerHTML = filtered.map((x) => {
+            // Logika Retensi Otomatis
+            const retensiLabel = x.retensi || "✅ Aktif"; 
+            let retColor = "bg-slate-100 text-slate-400";
 
-        return `
-        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-            <td class="p-4">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
-                    <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retensiColor}">${retensiLabel}</span>
-                </div>
-                <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
-                <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
-                    <i class="far fa-calendar-alt mr-1"></i>${x.tgl} ${x.asal ? '| Dari: '+x.asal : ''} ${x.tujuan ? '| Ke: '+x.tujuan : ''}
-                </div>
-            </td>
-            <td class="p-4 text-center">
-                <span class="px-2 py-1 rounded-full text-[8px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
-            </td>
-            <td class="p-4 flex justify-center gap-2">
-                <button onclick="cetakBarcode(${database.indexOf(x)})" class="btn-action bg-slate-100 hover:bg-emerald-500 hover:text-white"><i class="fas fa-qrcode"></i></button>
-                <button onclick="editData(${database.indexOf(x)})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white"><i class="fas fa-pen"></i></button>
-                <button onclick="openPreview('${x.link}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white"><i class="fas fa-eye"></i></button>
-                <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`;
-    }).join('');
-}
+            if (retensiLabel.includes("PERMANEN")) retColor = "bg-emerald-100 text-emerald-700";
+            else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) retColor = "bg-rose-100 text-rose-700 animate-pulse";
+            else if (/🕒|Hampir/i.test(retensiLabel)) retColor = "bg-amber-100 text-amber-700";
 
-    // --- FITUR QR & PRINT ---
+            const originalIndex = database.findIndex(item => item.no === x.no);
+
+            return `
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="p-4">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
+                        <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retColor}">${retensiLabel}</span>
+                    </div>
+                    <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        <i class="far fa-folder mr-1"></i>${x.klaster} | <i class="far fa-calendar-alt mr-1"></i>${x.tgl}
+                        ${x.asal && x.asal !== '-' ? ` | Dari: ${x.asal}` : ''}
+                    </div>
+                </td>
+                <td class="p-4 text-center">
+                    <span class="px-2 py-1 rounded-full text-[8px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
+                </td>
+                <td class="p-4">
+                    <div class="flex justify-center gap-2 whitespace-nowrap">
+                        <button onclick="cetakBarcode(${originalIndex})" class="btn-action bg-slate-100 hover:bg-emerald-500 hover:text-white"><i class="fas fa-qrcode"></i></button>
+                        <button onclick="editData(${originalIndex})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white"><i class="fas fa-pen"></i></button>
+                        <button onclick="openPreview('${x.link}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white"><i class="fas fa-eye"></i></button>
+                        <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
     function cetakBarcode(i) {
         const data = database[i];
         const win = window.open('', '_blank', 'width=400,height=500');
         win.document.write(`<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><style>body{text-align:center;padding:20px;font-family:sans-serif}.box{border:3px solid #000;padding:20px;border-radius:15px;display:inline-block;width:250px}#qr{margin:20px auto;display:flex;justify-content:center}.no{font-weight:900;font-size:14px;border-bottom:2px solid #000;padding-bottom:10px}</style></head><body><div class="box"><div class="no">${data.no}</div><div id="qr"></div><div class="nama" style="font-size:10px;font-weight:bold;text-transform:uppercase">${data.nama}</div></div><script>new QRCode(document.getElementById("qr"),{text:"${data.link}",width:150,height:150});setTimeout(()=>window.print(),500)<\/script></body></html>`);
     }
 
-    // --- EDIT & HAPUS ---
     function editData(i) {
         editIndex = i;
         const d = database[i];
@@ -613,124 +550,64 @@ reader.onload = (ev) => {
     }
 
     async function hapus(no) {
-        const pin = prompt(`Hapus data ${no}?\nMasukkan PIN Konfirmasi:`);
+        const pin = prompt(`Hapus data ${no}?\nPIN Konfirmasi:`);
         if (btoa(pin) === PIN_HASH) {
             await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "delete", no: no, token: pin }) });
             syncFromGAS();
-        } else if(pin) { 
-            alert("PIN SALAH!"); 
-        }
+        } else if(pin) { alert("PIN SALAH!"); }
     }
 
     function resetForm() {
-    editIndex = null;
-    currentEditNo = null; // Reset pengunci nomor
-    fileData = null;
-
-    // 2. Reset Form Input
-    document.getElementById('formArsip').reset();
-    document.getElementById('arsipFile').value = ""; 
-
-    // 3. Reset UI Tombol
-    const btnSimpan = document.getElementById('btnSimpan');
-    btnSimpan.innerText = "SIMPAN & ARSIPKAN";
-    btnSimpan.disabled = false;
-    document.getElementById('btnBatal').classList.add('hidden');
-
-    // 4. Reset UI Progress Bar & Label
-    document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
-    
-    const progBar = document.getElementById('progressBar');
-    progBar.style.width = '0%';
-    progBar.className = "bg-blue-600 h-full rounded-full transition-all duration-300";
-    
-    // Sembunyikan container progress agar tidak mengganggu
-    document.getElementById('progressContainer').classList.add('hidden');
-    
-    // Kembalikan teks progress ke awal
-    document.getElementById('progressText').innerText = "MENGUNGGAH: 0%";
-    document.getElementById('progressText').className = "text-[10px] font-bold text-blue-700 mt-1.5 text-center";
-}
+        editIndex = null; currentEditNo = null; fileData = null;
+        document.getElementById('formArsip').reset();
+        document.getElementById('btnSimpan').innerText = "SIMPAN & ARSIPKAN";
+        document.getElementById('btnBatal').classList.add('hidden');
+        document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
+        document.getElementById('progressContainer').classList.add('hidden');
+    }
 
     function togglePedoman() {
-    const m = document.getElementById('modalPedoman');
-    if(m.classList.contains('hidden')) {
-        let h = `
-        <div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200 dark:border-emerald-800">
-            <h3 class="text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm mb-4 flex items-center gap-2">
-                <i class="fas fa-info-circle"></i> Panduan Operasional Sistem
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] leading-relaxed">
-                <div>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">A. AKSES & KEAMANAN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Gunakan PIN <b>2026</b> untuk masuk.</li>
-                        <li>Klik <b>Sinkronisasi (Orange)</b> setiap kali membuka aplikasi untuk data terbaru.</li>
-                    </ul>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">B. INPUT DOKUMEN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Pilih Klaster & Sub untuk kode otomatis.</li>
-                        <li>Perihal minimal 5 karakter & gunakan huruf KAPITAL.</li>
-                        <li>File PDF maksimal <b>5MB</b>.</li>
-                    </ul>
+        const m = document.getElementById('modalPedoman');
+        if(m.classList.contains('hidden')) {
+            let h = `<div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200">
+                <h3 class="text-emerald-700 font-black text-sm mb-4">Panduan Operasional</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]">
+                    <div><p class="font-black">A. AKSES</p><p>Gunakan PIN 2026. Klik Sinkronisasi secara berkala.</p></div>
+                    <div><p class="font-black">B. FILTER</p><p>Gunakan dropdown filter untuk menyaring per Klaster atau Jenis Dokumen.</p></div>
                 </div>
-                <div>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">C. PENCARIAN & MANAJEMEN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Filter Klaster untuk menyaring data per bidang.</li>
-                        <li><b>Export Excel</b> akan mengunduh data sesuai hasil pencarian/filter Anda.</li>
-                        <li>Gunakan ikon <b>QR</b> untuk mencetak label fisik map.</li>
-                    </ul>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">D. KOREKSI DATA</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Klik <b>Pensil</b> untuk edit, klik <b>Sampah</b> untuk hapus.</li>
-                        <li>Penghapusan memerlukan verifikasi PIN kembali.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-span-full mb-2">
-            <h3 class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] mb-4">Daftar Kode Klasifikasi (Perbup No 135 Th 2023)</h3>
-        </div>
-        `;
-			
+            </div>`;
             Object.keys(KLASTER).forEach(k => {
                 const s = CLUSTER_STYLES[k];
-                h += `<div class="p-4 ${s.bg} rounded-2xl border border-slate-100"><div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}"><i class="fas ${s.icon}"></i> ${k}</div><div class="flex flex-wrap gap-1">${KLASTER[k].map(c => `<span class="kode-tag">${c}</span>`).join('')}</div></div>`;
+                h += `<div class="p-4 ${s.bg} rounded-2xl border border-slate-100"><div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}"><i class="fas ${s.icon}"></i> ${k}</div><div class="flex flex-wrap gap-1">${KLASTER[k].map(c => `<span class="px-1.5 py-0.5 bg-white rounded text-[8px] border">${c}</span>`).join('')}</div></div>`;
             });
             document.getElementById('pedomanContent').innerHTML = h;
             m.classList.remove('hidden');
-        } else { m.classList.add('hidden'); }
+        } else m.classList.add('hidden');
     }
 
-    // --- PREVIEW & EXPORT ---
     function openPreview(link) {
         if(!link || link === 'undefined' || link === '') return alert("File tidak ditemukan!");
         document.getElementById('previewFrame').src = link.replace('/view', '/preview');
         document.getElementById('modalPreview').classList.remove('hidden');
     }
 
-    function closePreview() { 
-        document.getElementById('modalPreview').classList.add('hidden'); 
-        document.getElementById('previewFrame').src = ""; 
-    }
+    function closePreview() { document.getElementById('modalPreview').classList.add('hidden'); document.getElementById('previewFrame').src = ""; }
     
     function toggleTheme() { 
         document.documentElement.classList.toggle('dark');
         document.getElementById('themeIcon').className = document.documentElement.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
     }
 
-    function logout() { sessionStorage.clear(); location.reload(); }
+    function logout() { sessionStorage.clear(); localStorage.removeItem('pkm_session_status'); location.reload(); }
 
     function exportToExcel() {
-        const dataToExport = database.filter(x => (x.mode || 'arsip') === currentMode);
-        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const filteredData = database.filter(x => (x.mode || 'arsip') === currentMode);
+        const ws = XLSX.utils.json_to_sheet(filteredData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Database");
-        XLSX.writeFile(wb, `E-Arsip_${currentMode}_${new Date().toLocaleDateString()}.xlsx`);
+        XLSX.writeFile(wb, `E-Arsip_${new Date().toLocaleDateString()}.xlsx`);
     }
 
-    // --- AUTO LOGIN CHECK ---
     window.onload = () => {
         if(sessionStorage.getItem('arsip_session_pin')) {
             document.getElementById('modalLogin').classList.add('hidden');
