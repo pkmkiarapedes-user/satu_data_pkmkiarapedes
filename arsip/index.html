@@ -613,6 +613,15 @@ function generatePreview() {
         }).join('');
     }
 
+const maxNo = database
+    .filter(x => (x.mode || 'arsip') === currentMode)
+    .map(x => {
+        const p = x.no.split('/');
+        return p.length > 1 ? parseInt(p[1], 10) : 0;
+    })
+    .reduce((a, b) => Math.max(a, b), 0);
+document.getElementById('noUrut').placeholder = "No urut Terakhir: " + maxNo;
+		
     function cetakBarcode(i) {
         const data = database[i];
         const win = window.open('', '_blank', 'width=400,height=500');
@@ -620,22 +629,30 @@ function generatePreview() {
     }
 
     function editData(i) {
-        editIndex = i;
-        const d = database[i];
-		currentEditNo = d.no;
-        document.getElementById('selJenisSurat').value = d.jenis || "";
-        document.getElementById('selKlaster').value = d.klaster;
-        updateSub();
-        document.getElementById('selSub').value = d.sub;
-        document.getElementById('arsipNama').value = d.nama;
-        document.getElementById('arsipTgl').value = d.tgl;
-        document.getElementById('inpAsal').value = d.asal || "";
-        document.getElementById('inpTujuan').value = d.tujuan || "";
-        document.getElementById('btnSimpan').innerText = "UPDATE DATA";
-        document.getElementById('btnBatal').classList.remove('hidden');
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
+    editIndex = i;
+    const d = database[i];
+    currentEditNo = d.no; // Simpan nomor asli untuk referensi backend
 
+    const parts = d.no.split('/');
+    if (parts.length > 1) {
+    const noUrutHanyaAngka = parseInt(parts[1], 10);
+    document.getElementById('noUrut').value = noUrutHanyaAngka;
+    }
+    document.getElementById('selJenisSurat').value = d.jenis || "";
+    document.getElementById('selKlaster').value = d.klaster;
+    updateSub(); // Memastikan dropdown sub-klaster terisi
+    document.getElementById('selSub').value = d.sub;
+    document.getElementById('arsipNama').value = d.nama;
+    document.getElementById('arsipTgl').value = d.tgl;
+    document.getElementById('inpAsal').value = d.asal || "";
+    document.getElementById('inpTujuan').value = d.tujuan || "";
+    
+    generatePreview();
+    document.getElementById('btnSimpan').innerText = "UPDATE DATA";
+    document.getElementById('btnBatal').classList.remove('hidden');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+	
     async function hapus(no) {
         const pin = prompt(`Hapus data ${no}?\nPIN Konfirmasi:`);
         if (btoa(pin) === PIN_HASH) {
