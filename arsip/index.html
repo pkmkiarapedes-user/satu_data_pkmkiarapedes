@@ -169,6 +169,22 @@
         #sidebar { position: fixed; height: 100vh; } 
         #sidebar.closed { width: 0; }
     }
+
+    #clock {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+}
+
+/* Efek menyala pada angka jam */
+#clock span:first-child {
+    font-family: 'Inter', sans-serif; /* Pastikan menggunakan font yang tegas */
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
 </style>
 	
 </head>
@@ -408,20 +424,62 @@
         }
     }
 
-    function initApp() {
-        const kSel = document.getElementById('selKlaster');
-        const fKlaster = document.getElementById('filterKlaster');
-        
-        const options = Object.keys(KLASTER).map(k => `<option value="${k}">${k}</option>`).join('');
-        kSel.innerHTML = options;
-        fKlaster.innerHTML = '<option value="">Semua Klaster</option>' + options;
-
-        updateSub();
-        syncFromGAS();
-        setInterval(() => { 
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); 
-        }, 1000);
+    // Tambahkan listener untuk mendeteksi tombol Enter pada input PIN
+document.getElementById('pinInput').addEventListener('keyup', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Mencegah form reload jika ada
+        verifikasiPin();
     }
+});
+
+    function initApp() {
+    const kSel = document.getElementById('selKlaster');
+    const fKlaster = document.getElementById('filterKlaster');
+    
+    const options = Object.keys(KLASTER).map(k => `<option value="${k}">${k}</option>`).join('');
+    kSel.innerHTML = options;
+    fKlaster.innerHTML = '<option value="">Semua Klaster</option>' + options;
+
+    updateSub();
+    syncFromGAS();
+
+    // Jalankan jam digital yang sudah dipercantik
+    updateClock(); 
+    setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+    const now = new Date();
+    
+    // Format Jam: 08:30:05
+    const timeStr = now.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+    });
+
+    // Format Tanggal Singkat: Kamis, 09 Apr 2026
+    const dateStr = now.toLocaleDateString('id-ID', { 
+        weekday: 'short', 
+        day: 'numeric', 
+        month: 'short'
+    });
+
+    const clockEl = document.getElementById('clock');
+    if (clockEl) {
+        clockEl.innerHTML = `
+            <div class="flex items-center gap-3">
+                <span class="text-lg md:text-xl font-black text-emerald-600 drop-shadow-sm border-r border-slate-300 dark:border-slate-600 pr-3">
+                    ${timeStr}
+                </span>
+                <span class="text-[9px] uppercase tracking-widest font-bold text-slate-500 leading-none">
+                    ${dateStr}
+                </span>
+            </div>
+        `;
+    }
+}
 
     function switchMode(mode) {
         currentMode = mode;
