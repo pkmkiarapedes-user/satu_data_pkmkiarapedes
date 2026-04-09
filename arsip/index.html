@@ -495,19 +495,24 @@ document.getElementById('formArsip').onsubmit = async (e) => {
     const btn = document.getElementById('btnSimpan');
     const progContainer = document.getElementById('progressContainer');
     const progBar = document.getElementById('progressBar');
+    const progText = document.getElementById('progressText');
     
+    // Validasi Awal
+    if (!document.getElementById('arsipNama').value) return alert("Perihal harus diisi!");
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
+    
+    // MUNCULKAN BAR PROSES
     progContainer.classList.remove('hidden');
-
-    // Ambil nomor surat dari hasil preview terbaru
-    const nomorSurat = generatePreview();
+    progBar.style.width = '0%';
+    progText.innerText = "UPLOADING: 0%";
 
     const payload = {
-        token: "2026", // Kirim PIN murni untuk validasi PIN_MASTER di GAS
+        token: "2026", // PIN murni
         action: editIndex !== null ? "update" : "upload",
         mode: currentMode,
-        no: nomorSurat,
+        no: generatePreview(),
         nama: document.getElementById('arsipNama').value.toUpperCase(),
         klaster: document.getElementById('selKlaster').value,
         sub: document.getElementById('selSub').value,
@@ -515,9 +520,18 @@ document.getElementById('formArsip').onsubmit = async (e) => {
         tgl: document.getElementById('arsipTgl').value,
         asal: document.getElementById('inpAsal').value,
         tujuan: document.getElementById('inpTujuan').value,
-        // Pastikan ini mengambil string base64 yang sudah diproses di onchange
         fileData: fileData ? fileData.base64 : null 
     };
+
+    // LOGIKA ANIMASI BAR PROSES (Dibuat Manual karena Fetch tidak mendukung progress upload murni)
+    let p = 0;
+    const interval = setInterval(() => {
+        if (p < 90) { // Berhenti di 90% sampai ada respon dari server
+            p += (90 - p) * 0.1;
+            progBar.style.width = p + '%';
+            progText.innerText = `UPLOADING: ${Math.round(p)}%`;
+        }
+    }, 200);
 
     try {
         const resp = await fetch(GAS_URL, { 
@@ -528,15 +542,22 @@ document.getElementById('formArsip').onsubmit = async (e) => {
         const res = await resp.json();
 
         if (res.status === "success") {
-            progBar.style.width = '100%';
-            alert("✅ Berhasil: " + res.msg);
-            resetForm();
-            syncFromGAS();
+            clearInterval(interval); // Hentikan animasi
+            progBar.style.width = '100%'; // Full-kan bar
+            progText.innerText = "SELESAI!";
+            
+            setTimeout(() => {
+                alert("✅ Berhasil Disimpan!");
+                resetForm();
+                syncFromGAS();
+            }, 500);
         } else {
             throw new Error(res.msg);
         }
     } catch (err) {
-        alert("❌ Gagal Simpan: " + err.message);
+        clearInterval(interval);
+        alert("❌ Gagal: " + err.message);
+        progContainer.classList.add('hidden');
     } finally {
         btn.disabled = false;
         btn.innerText = "SIMPAN & ARSIPKAN";
