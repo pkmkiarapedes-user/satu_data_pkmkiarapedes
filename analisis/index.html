@@ -1,16 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
-    <script>
-    (function() {
-        const session = localStorage.getItem('pkm_session_status');
-        if (session !== 'AUTHORIZED') {
-            alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
-            window.location.href = "index.html";
-        }
-    })();
-</script>
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +18,13 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
         .glass { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
         .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Sidebar & Overlay */
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; z-index: 50; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.3); }
+        .sidebar.active { left: 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 40; display: none; }
+        .overlay.active { display: block; }
+
         .alert-pulse { animation: pulse-red 2s infinite; border: 2px solid #ef4444; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .trend-up { color: #ef4444; } .trend-down { color: #10b981; }
@@ -36,28 +32,59 @@
 </head>
 <body class="p-4 md:p-8">
 
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="sidebar glass p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="font-black tracking-tighter text-emerald-500 uppercase text-sm">Main Menu</h2>
+            <button onclick="toggleSidebar()" class="text-xl opacity-50 hover:opacity-100"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <nav class="flex flex-col gap-2">
+            <button onclick="toggleTheme(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+                <i id="sideThemeIcon" class="fas fa-sun text-amber-400 w-6"></i>
+                <span class="text-xs font-bold uppercase">Ganti Tema</span>
+            </button>
+            <button onclick="copyWeeklySummary(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+                <i class="fas fa-copy text-blue-500 w-6"></i>
+                <span class="text-xs font-bold uppercase">Copy Summary</span>
+            </button>
+            <button onclick="exportMergedExcel(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+                <i class="fas fa-file-excel text-indigo-500 w-6"></i>
+                <span class="text-xs font-bold uppercase">Fix & Merge Excel</span>
+            </button>
+            <button onclick="exportLaporanPDF(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+                <i class="fas fa-file-pdf text-emerald-500 w-6"></i>
+                <span class="text-xs font-bold uppercase">PDF Report</span>
+            </button>
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-white/10 text-center">
+            <p class="text-[8px] opacity-40 font-bold tracking-widest uppercase">Puskesmas Kiarapedes v2.1</p>
+        </div>
+    </div>
+
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10 text-center md:text-left">
+        <header class="flex justify-between items-center mb-10">
             <div class="flex items-center gap-4">
-                <div class="relative">
-                    <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                        <i class="fas fa-microchip text-white text-3xl"></i>
+                <button onclick="toggleSidebar()" class="w-12 h-12 glass flex items-center justify-center hover:scale-105 transition-all">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center gap-4 ml-2">
+                    <div class="hidden sm:flex w-12 h-12 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-2xl items-center justify-center shadow-xl">
+                        <i class="fas fa-microchip text-white text-xl"></i>
                     </div>
-                    <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
-                    </span>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-black tracking-tighter uppercase">Pusat<span class="text-emerald-500"> Analitik Data</span></h1>
-                    <p class="text-[10px] font-bold opacity-60 tracking-[0.3em]">PUSKESMAS KIARAPEDES</p>
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">Pusat<span class="text-emerald-500"> Analitik Data</span></h1>
+                        <p class="text-[9px] font-bold opacity-50 tracking-[0.2em] mt-1 uppercase">Puskesmas Kiarapedes</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap justify-center gap-2">
-                <button onclick="toggleTheme()" class="glass p-4 hover:scale-105 transition-all"><i id="themeIcon" class="fas fa-sun text-amber-400"></i></button>
-                <button onclick="copyWeeklySummary()" class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-lg">Summary</button>
-                <button onclick="exportMergedExcel()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-indigo-700 transition-all shadow-lg"><i class="fas fa-file-excel mr-2"></i>Fix & Merge</button>
-                <button onclick="exportLaporanPDF()" class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase hover:bg-emerald-700 transition-all shadow-lg">PDF Report</button>
+            <div class="text-right hidden md:block">
+                <p id="headerDate" class="text-[10px] font-bold opacity-60 uppercase"></p>
+                <div class="flex items-center justify-end gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-[9px] font-black text-emerald-500 uppercase">Live Sync Active</span>
+                </div>
             </div>
         </header>
 
@@ -76,7 +103,7 @@
             </div>
             <div class="glass p-6">
                 <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Search Diagnosis</label>
-                <input type="text" id="searchICD" oninput="renderAnalysis()" placeholder="Contoh: K04 atau Gigi" class="w-full bg-transparent border-b border-white/10 py-1 text-xs focus:outline-none focus:border-emerald-500 transition-all">
+                <input type="text" id="searchICD" oninput="renderAnalysis()" placeholder="K04 atau Gigi..." class="w-full bg-transparent border-b border-white/10 py-1 text-xs focus:outline-none focus:border-emerald-500 transition-all">
             </div>
             <div class="glass p-6">
                 <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Safety Target</label>
@@ -96,7 +123,7 @@
                     </div>
                 </div>
                 <div class="glass p-6 border-b-4 border-cyan-500">
-                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-cyan-500">Capaian E-Puskesmas</p>
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-cyan-500">e-Puskesmas</p>
                     <div class="flex items-center gap-2">
                         <span id="statEpus" class="text-3xl font-black mono text-cyan-500">0</span>
                         <span id="trendEpus" class="text-sm font-bold opacity-0 text-cyan-500">↑ 0</span>
@@ -118,13 +145,13 @@
                     <div class="h-[400px]"><canvas id="mainChart"></canvas></div>
                 </div>
                 <div class="glass p-8 flex flex-col">
-                    <h3 class="text-xs font-black text-emerald-500 uppercase mb-6 flex items-center gap-2"><i class="fas fa-biohazard"></i> Diagnosis Terbanyak</h3>
+                    <h3 class="text-xs font-black text-emerald-500 uppercase mb-6 flex items-center gap-2"><i class="fas fa-biohazard"></i> Diagnosis</h3>
                     <div id="icdList" class="space-y-4 overflow-y-auto max-h-[350px] pr-2"></div>
                 </div>
             </div>
 
             <div class="glass p-8 border-l-8 border-emerald-500 bg-emerald-500/5 mb-8">
-                <h3 class="text-xs font-black text-emerald-500 uppercase mb-3"><i class="fas fa-brain"></i> Ana</h3>
+                <h3 class="text-xs font-black text-emerald-500 uppercase mb-3"><i class="fas fa-brain"></i> AI Evaluasi</h3>
                 <div id="aiEvaluation" class="text-sm leading-relaxed opacity-80 italic">Menunggu input data...</div>
             </div>
 
@@ -133,32 +160,8 @@
     </div>
 
     <script>
-        // MASTER DATABASE
-        const ICD_DATA = {
-            "K04.0": "Pulpitis (Radang Pulpa Gigi)", 
-            "K04.1": "Necrosis of Pulp", 
-            "K08.3": "Retained Dental Root",
-            "K02.1": "Caries of Dentine", 
-            "K04.6": "Periapical Abscess", 
-            "K30": "Dyspepsia (Maag)",
-            "I10": "Hypertension (Darah Tinggi)", 
-            "M79.1": "Myalgia (Nyeri Otot)", 
-            "J06.9": "ISPA Akut",
-            "J00": "Nasofaringitis (Flu)", 
-            "Z34": "Kontrol Kehamilan", 
-            "Z00": "General Check-up",
-            "A16": "TBC Paru (Klinis)", 
-            "A15": "TBC Paru (BTA+)", 
-            "H10": "Conjunctivitis",
-            "M54.5": "Low Back Pain", 
-            "R51": "Headache", 
-            "K21": "GERD", 
-            "B86": "Scabies",
-            "E11": "Diabetes Melitus Tipe 2", 
-            "J45": "Asthma", 
-            "K02": "Dental Caries"
-        };
-
+        // MASTER CONFIG
+        const ICD_DATA = { "K04.0": "Pulpitis", "K04.1": "Necrosis of Pulp", "K08.3": "Retained Dental Root", "K02.1": "Caries of Dentine", "K04.6": "Periapical Abscess", "K30": "Dyspepsia", "I10": "Hypertension", "M79.1": "Myalgia", "J06.9": "ISPA Akut", "J00": "Nasofaringitis", "Z34": "Kontrol Kehamilan", "Z00": "General Check-up", "A16": "TBC Paru (Klinis)", "A15": "TBC Paru (BTA+)", "H10": "Conjunctivitis", "M54.5": "Low Back Pain", "R51": "Headache", "K21": "GERD", "B86": "Scabies", "E11": "Diabetes Melitus Tipe 2", "J45": "Asthma", "K02": "Dental Caries" };
         const WILAYAH = ["KIARAPEDES", "PARAKAN GAROKGEK", "CIBEBER", "MARGALUYU", "CIRACAS", "TARINGGUL LANDEUH", "PUSAKAMULYA", "SUMBERSARI", "GARDU", "MEKARJAYA"];
         const MAP_WILAYAH = { "PARAKAN": "PARAKAN GAROKGEK", "KIARAPEDES": "KIARAPEDES", "CIBEBER": "CIBEBER" };
         const KONTAK_WILAYAH = {"KIARAPEDES": "628123456789", "PARAKAN GAROKGEK": "628776543210","CIBEBER": "628198765432", "MARGALUYU": "628521122334", "CIRACAS": "628133445566", "PUSAKAMULYA": "628998877665", "TARINGGUL LANDEUH": "628521122334", "SUMBERSARI": "628133445566", "GARDU": "628998877665", "MEKARJAYA": "628358621012"};
@@ -169,14 +172,20 @@
         let PREV_TOTAL = { asik: 0, epus: 0 };
         let chartObj = null;
 
+        // UI FUNCTIONS
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('themeIcon');
-            icon.className = document.body.classList.contains('light-mode') ? 'fas fa-moon text-blue-600' : 'fas fa-sun text-amber-400';
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('sideThemeIcon').className = isLight ? 'fas fa-moon text-blue-600 w-6' : 'fas fa-sun text-amber-400 w-6';
             renderAnalysis();
         }
 
-        // REFINED DIAGNOSIS EXTRACTOR
+        // DATA FUNCTIONS
         function extractCodes(row) {
             const str = Object.values(row).join(" ").toUpperCase();
             return str.match(/[A-Z][0-9][0-9](\.[0-9])?/g) || [];
@@ -194,19 +203,12 @@
 
                 json.forEach(row => {
                     const rowStr = Object.values(row).join(" ").toUpperCase();
-                    
-                    // NIK Capture
                     const nik = row['NIK'] || row['No. KTP'] || null;
                     if(nik) res.nils.push(nik);
 
-                    // Diagnosis Capture (FIXED)
                     const codes = extractCodes(row);
-                    codes.forEach(c => { 
-                        res.icd[c] = (res.icd[c] || 0) + 1; 
-                        res.total++; 
-                    });
+                    codes.forEach(c => { res.icd[c] = (res.icd[c] || 0) + 1; res.total++; });
 
-                    // Area Capture
                     let found = null;
                     for (let key in MAP_WILAYAH) { if(rowStr.includes(key)) found = MAP_WILAYAH[key]; }
                     if(!found) WILAYAH.forEach(w => { if(rowStr.includes(w)) found = w; });
@@ -229,20 +231,19 @@
             updateTrend('trendEpus', DATA_EPUS.total, PREV_TOTAL.epus);
 
             const allNIK = [...DATA_ASIK.nils, ...DATA_EPUS.nils];
-            const dups = allNIK.length - new Set(allNIK).size;
-            const integrity = allNIK.length > 0 ? (100 - (dups/allNIK.length*100)).toFixed(1) : 100;
+            const integrity = allNIK.length > 0 ? (100 - ((allNIK.length - new Set(allNIK).size)/allNIK.length*100)).toFixed(1) : 100;
             document.getElementById('dataIntegrity').innerText = integrity + "%";
 
-            // URGENT ALERTS
+            // ALERTS
             const alertArea = document.getElementById('urgentAlertArea');
             alertArea.innerHTML = ""; alertArea.classList.add('hidden');
             let urgentMsgs = [];
             URGENT_ICD.forEach(code => {
                 const gap = (DATA_EPUS.icd[code] || 0) - (DATA_ASIK.icd[code] || 0);
                 if (gap > 0) {
-                    urgentMsgs.push(ICD_DATA[code] || code);
+                    urgentMsgs.push(code);
                     alertArea.classList.remove('hidden');
-                    alertArea.innerHTML += `<div class="glass alert-pulse p-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fas fa-biohazard text-red-500"></i><p class="text-sm font-bold">${ICD_DATA[code] || code}: Gap ${gap} Kasus!</p></div><span class="text-[9px] bg-red-600 px-2 py-1 rounded">PRIORITAS</span></div>`;
+                    alertArea.innerHTML += `<div class="glass alert-pulse p-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fas fa-biohazard text-red-500"></i><p class="text-sm font-bold">${code}: Selisih ${gap} Kasus!</p></div></div>`;
                 }
             });
 
@@ -256,8 +257,8 @@
                 const diff = dEpus[i] - dAsik[i];
                 if(diff > 0) {
                     pending += diff;
-                    const waLink = `https://wa.me/${KONTAK_WILAYAH[desa] || ''}?text=Halo%20Admin%20Desa%20${desa},%20mohon%20bantuannya%20untuk%20sinkronisasi%20data.%20Terdapat%20selisih%20${diff}%20data%20antara%20e-PKM%20dan%20ASIK.`;
-                    log.innerHTML += `<div class="glass p-5 flex justify-between items-center border-l-4 ${diff > target/2 ? 'border-red-500' : 'border-emerald-500'}"><div><p class="text-[9px] font-bold opacity-40 uppercase">${desa}</p><p class="text-xl font-bold mono">${diff}</p></div><a href="${waLink}" target="_blank" class="text-emerald-500 hover:scale-125 transition-all"><i class="fab fa-whatsapp text-2xl"></i></a></div>`;
+                    const waLink = `https://wa.me/${KONTAK_WILAYAH[desa] || ''}?text=Halo%20Admin%20${desa},%20ada%20gap%20data%20${diff}%20surat%20ASIK.`;
+                    log.innerHTML += `<div class="glass p-5 flex justify-between items-center border-l-4 ${diff > target/2 ? 'border-red-500' : 'border-emerald-500'}"><div><p class="text-[9px] font-bold opacity-40 uppercase">${desa}</p><p class="text-xl font-bold mono">${diff}</p></div><a href="${waLink}" target="_blank" class="text-emerald-500"><i class="fab fa-whatsapp text-2xl"></i></a></div>`;
                 }
             });
 
@@ -272,35 +273,22 @@
                     labels: WILAYAH,
                     datasets: [
                         { label: 'ASIK', data: dAsik, backgroundColor: '#10b981', borderRadius: 8 },
-                        { label: 'e-PKM', data: dEpus, backgroundColor: '#06b6d4', borderRadius: 8 },
-                        { label: 'Target', data: WILAYAH.map(()=>target), type: 'line', borderColor: '#ef4444', borderDash:[5,5], pointRadius:0 }
+                        { label: 'e-PKM', data: dEpus, backgroundColor: '#06b6d4', borderRadius: 8 }
                     ]
                 },
-                options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: isLight ? '#000' : '#fff' } } }, scales: { y: { ticks: { color: isLight ? '#000' : '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: isLight ? '#000' : '#fff' } } } }
+                options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: isLight ? '#000' : '#fff' } } }, scales: { y: { ticks: { color: isLight ? '#000' : '#fff' } }, x: { ticks: { color: isLight ? '#000' : '#fff' } } } }
             });
 
-            // HIGH FREQ DIAGNOSIS (FIXED FILTER)
-            const filtered = Object.entries(DATA_EPUS.icd)
-                .filter(([c]) => c.includes(search) || (ICD_DATA[c] && ICD_DATA[c].toUpperCase().includes(search)))
-                .sort((a,b)=>b[1]-a[1]).slice(0,10);
-            
-            document.getElementById('icdList').innerHTML = filtered.length > 0 ? filtered.map(([c, v]) => `
-                <div class="flex flex-col border-b border-white/5 pb-2">
-                    <div class="flex justify-between items-center">
-                        <span class="font-black text-xs ${URGENT_ICD.includes(c) ? 'text-red-500' : 'text-emerald-400'}">${c}</span>
-                        <span class="mono text-xs font-bold">${v} Case</span>
-                    </div>
-                    <span class="text-[9px] opacity-60 uppercase">${ICD_DATA[c] || 'Other Diagnosis'}</span>
-                </div>`).join('') : '<p class="text-xs opacity-40 italic">Tidak ada diagnosis ditemukan</p>';
-
-            document.getElementById('aiEvaluation').innerText = `Analisis Kiarapedes: Skor trust data ${integrity}%. ${urgentMsgs.length > 0 ? 'Peringatan pada penyakit ' + urgentMsgs.join(', ') + '. ' : ''}Prioritas sinkronisasi desa dengan gap > ${target/2} kasus.`;
+            const filtered = Object.entries(DATA_EPUS.icd).filter(([c]) => c.includes(search) || (ICD_DATA[c] && ICD_DATA[c].toUpperCase().includes(search))).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            document.getElementById('icdList').innerHTML = filtered.map(([c, v]) => `<div class="flex flex-col border-b border-white/5 pb-2"><div class="flex justify-between items-center"><span class="font-black text-xs text-emerald-400">${c}</span><span class="mono text-xs font-bold">${v}</span></div><span class="text-[9px] opacity-60 uppercase">${ICD_DATA[c] || 'Lainnya'}</span></div>`).join('');
+            document.getElementById('aiEvaluation').innerText = `Skor Trust: ${integrity}%. ${urgentMsgs.length > 0 ? 'Waspada: ' + urgentMsgs.join(', ') : 'Data cenderung stabil.'}`;
         }
 
-        function updateTrend(elemId, current, prev) {
-            const el = document.getElementById(elemId);
-            if(prev === 0 || current === prev) { el.classList.add('opacity-0'); return; }
+        function updateTrend(id, cur, pre) {
+            const el = document.getElementById(id);
+            if(pre === 0 || cur === pre) { el.classList.add('opacity-0'); return; }
             el.classList.remove('opacity-0');
-            const diff = current - prev;
+            const diff = cur - pre;
             el.innerHTML = diff > 0 ? `↑ ${diff}` : `↓ ${Math.abs(diff)}`;
             el.className = `text-sm font-bold ${diff > 0 ? 'trend-up' : 'trend-down'}`;
         }
@@ -309,18 +297,21 @@
             if(!DATA_ASIK.raw.length && !DATA_EPUS.raw.length) return alert("Upload data dulu!");
             const ws = XLSX.utils.json_to_sheet([...DATA_ASIK.raw, ...DATA_EPUS.raw]);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Merged_Data");
+            XLSX.utils.book_append_sheet(wb, ws, "Master");
             XLSX.writeFile(wb, "PKM_Kiarapedes_Master.xlsx");
         }
 
         function copyWeeklySummary() {
-            const s = `*LAPORAN INTELLI-PKM KIARAPEDES*\n\n✅ ASIK: ${DATA_ASIK.total}\n🏥 e-PKM: ${DATA_EPUS.total}\n⚠️ Gap Total: ${document.getElementById('totalPending').innerText}\n💎 Trust: ${document.getElementById('dataIntegrity').innerText}\n\n_Generated by Kiarapedes Analytics Engine_`;
-            navigator.clipboard.writeText(s); alert("Summary disalin ke clipboard!");
+            const s = `*LAPORAN PKM KIARAPEDES*\n\n✅ ASIK: ${DATA_ASIK.total}\n🏥 e-PKM: ${DATA_EPUS.total}\n⚠️ Gap: ${document.getElementById('totalPending').innerText}\n💎 Trust: ${document.getElementById('dataIntegrity').innerText}`;
+            navigator.clipboard.writeText(s); alert("Disalin!");
         }
 
         function exportLaporanPDF() {
-            html2pdf().from(document.getElementById('printArea')).set({ margin: 10, filename: 'Report_Kiarapedes.pdf', jsPDF: { orientation: 'landscape' } }).save();
+            html2pdf().from(document.getElementById('printArea')).set({ margin: 10, filename: 'Analisis_Kiarapedes.pdf', jsPDF: { orientation: 'landscape' } }).save();
         }
+
+        // INIT DATE
+        document.getElementById('headerDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     </script>
 </body>
 </html>
