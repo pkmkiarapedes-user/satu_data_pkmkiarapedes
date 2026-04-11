@@ -19,7 +19,6 @@
         .glass { background: var(--panel); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Sidebar & Overlay */
         .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; z-index: 50; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.3); }
         .sidebar.active { left: 0; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 40; display: none; }
@@ -28,6 +27,8 @@
         .alert-pulse { animation: pulse-red 2s infinite; border: 2px solid #ef4444; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .trend-up { color: #ef4444; } .trend-down { color: #10b981; }
+
+        .desa-filter-btn.active { background: #10b981; color: white; border-color: #10b981; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -38,7 +39,7 @@
             <h2 class="font-black tracking-tighter text-emerald-500 uppercase text-sm">Main Menu</h2>
             <button onclick="toggleSidebar()" class="text-xl opacity-50 hover:opacity-100"><i class="fas fa-times"></i></button>
         </div>
-
+        
         <nav class="flex flex-col gap-2">
             <a href="index.html" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
             <i class="fas fa-home text-rose-500 w-6"></i> 
@@ -48,22 +49,26 @@
                 <i class="fas fa-copy text-blue-500 w-6"></i>
                 <span class="text-xs font-bold uppercase">Copy Summary</span>
             </button>
+            <button onclick="downloadMissingData(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+                <i class="fas fa-user-tag text-lime-500 w-6"></i>
+                <span class="text-xs font-bold uppercase">Unduh Selisih NIK (XLS)</span>
+            </button>
             <button onclick="exportMergedExcel(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
-                <i class="fas fa-file-excel text-indigo-500 w-6"></i>
+                <i class="fas fa-file-excel text-emerald-500 w-6"></i>
                 <span class="text-xs font-bold uppercase">Fix & Merge Excel</span>
             </button>
             <button onclick="exportLaporanPDF(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
-                <i class="fas fa-file-pdf text-emerald-500 w-6"></i>
+                <i class="fas fa-file-pdf text-orange-500 w-6"></i>
                 <span class="text-xs font-bold uppercase">PDF Report</span>
             </button>
-             <button onclick="toggleTheme(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
+            <button onclick="toggleTheme(); toggleSidebar();" class="flex items-center gap-4 p-4 hover:bg-white/10 rounded-2xl transition-all">
                 <i id="sideThemeIcon" class="fas fa-sun text-amber-400 w-6"></i>
                 <span class="text-xs font-bold uppercase">Ganti Tema</span>
             </button>
         </nav>
 
         <div class="mt-auto pt-6 border-t border-white/10 text-center">
-            <p class="text-[8px] opacity-40 font-bold tracking-widest uppercase">Puskesmas Kiarapedes v2.1</p>
+            <p class="text-[8px] opacity-40 font-bold tracking-widest uppercase">Manajemen Data & Informasi</p>
         </div>
     </div>
 
@@ -73,21 +78,16 @@
                 <button onclick="toggleSidebar()" class="w-12 h-12 glass flex items-center justify-center hover:scale-105 transition-all">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
-                <div class="flex items-center gap-4 ml-2">
-                    <div class="hidden sm:flex w-12 h-12 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-2xl items-center justify-center shadow-xl">
-                        <i class="fas fa-microchip text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">Pusat<span class="text-emerald-500"> Analitik Data</span></h1>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">Pusat<span class="text-emerald-500"> Analitik Data</span></h1>
                         <p class="text-[9px] font-bold opacity-50 tracking-[0.2em] mt-1 uppercase">Puskesmas Kiarapedes</p>
                     </div>
-                </div>
             </div>
             <div class="text-right hidden md:block">
                 <p id="headerDate" class="text-[10px] font-bold opacity-60 uppercase"></p>
                 <div class="flex items-center justify-end gap-2">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-[9px] font-black text-emerald-500 uppercase">Live Sync Active</span>
+                    <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                    <span class="text-[9px] font-black text-rose-500 uppercase">Live Sync</span>
                 </div>
             </div>
         </header>
@@ -106,11 +106,11 @@
                 <p id="nameEpus" class="text-[8px] opacity-40 mt-1 truncate">Format: Excel (.xlsx)</p>
             </div>
             <div class="glass p-6">
-                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Search Diagnosis</label>
-                <input type="text" id="searchICD" oninput="renderAnalysis()" placeholder="K04 atau Gigi..." class="w-full bg-transparent border-b border-white/10 py-1 text-xs focus:outline-none focus:border-emerald-500 transition-all">
+                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Cari Diagnosa</label>
+                <input type="text" id="searchICD" oninput="renderAnalysis()" placeholder="K04 atau Gigi..." class="w-full bg-transparent border-b border-white/10 py-1 text-xs focus:outline-none focus:border-emerald-500">
             </div>
             <div class="glass p-6">
-                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Safety Target</label>
+                <label class="text-[9px] font-bold opacity-50 uppercase block mb-1">Target Gap</label>
                 <input type="number" id="targetValue" value="50" onchange="renderAnalysis()" class="w-full bg-transparent border-b border-white/10 py-1 text-xs font-bold text-emerald-500 focus:outline-none">
             </div>
         </div>
@@ -120,105 +120,127 @@
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="glass p-6 border-b-4 border-emerald-500">
-                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Capaian ASIK</p>
-                    <div class="flex items-center gap-2">
-                        <span id="statAsik" class="text-3xl font-black mono">0</span>
-                        <span id="trendAsik" class="text-sm font-bold opacity-0">↑ 0</span>
-                    </div>
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">ASIK</p>
+                    <span id="statAsik" class="text-3xl font-black mono">0</span>
+                    <span id="trendAsik" class="text-sm font-bold opacity-0 ml-2">↑ 0</span>
                 </div>
                 <div class="glass p-6 border-b-4 border-cyan-500">
-                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-cyan-500">e-Puskesmas</p>
-                    <div class="flex items-center gap-2">
-                        <span id="statEpus" class="text-3xl font-black mono text-cyan-500">0</span>
-                        <span id="trendEpus" class="text-sm font-bold opacity-0 text-cyan-500">↑ 0</span>
-                    </div>
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">e-Puskesmas</p>
+                    <span id="statEpus" class="text-3xl font-black mono text-cyan-500">0</span>
+                    <span id="trendEpus" class="text-sm font-bold opacity-0 ml-2">↑ 0</span>
                 </div>
                 <div class="glass p-6 border-b-4 border-amber-500">
-                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-amber-500">Sync Gap</p>
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Sync Gap</p>
                     <div id="totalPending" class="text-3xl font-black mono text-amber-500">0</div>
                 </div>
                 <div class="glass p-6 border-b-4 border-purple-500">
-                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1 text-purple-500">Data Trust</p>
+                    <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Integritas Data</p>
                     <div id="dataIntegrity" class="text-3xl font-black mono text-purple-500">100%</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 glass p-8">
-                    <h3 class="text-xs font-black opacity-40 uppercase mb-6 flex items-center gap-2"><i class="fas fa-chart-line"></i> Sebaran Desa</h3>
+                    <h3 class="text-xs font-black opacity-40 uppercase mb-6 flex items-center gap-2"><i class="fas fa-chart-line"></i> Sebaran Data Desa</h3>
                     <div class="h-[400px]"><canvas id="mainChart"></canvas></div>
                 </div>
-                <div class="glass p-8 flex flex-col">
-                    <h3 class="text-xs font-black text-emerald-500 uppercase mb-6 flex items-center gap-2"><i class="fas fa-biohazard"></i> Diagnosis</h3>
+                <div class="glass p-8">
+                    <h3 class="text-xs font-black text-emerald-500 uppercase mb-6 flex items-center gap-2"><i class="fas fa-biohazard"></i> 10 Besar Diagnosis</h3>
                     <div id="icdList" class="space-y-4 overflow-y-auto max-h-[350px] pr-2"></div>
                 </div>
             </div>
 
             <div class="glass p-8 border-l-8 border-emerald-500 bg-emerald-500/5 mb-8">
-                <h3 class="text-xs font-black text-emerald-500 uppercase mb-3"><i class="fas fa-brain"></i> AI Evaluasi</h3>
+                <h3 class="text-xs font-black text-emerald-500 uppercase mb-3"><i class="fas fa-brain"></i> AI Evaluasi & Catatan</h3>
                 <div id="aiEvaluation" class="text-sm leading-relaxed opacity-80 italic">Menunggu input data...</div>
             </div>
 
-            <div id="validationLog" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            <div id="validationLog" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+
+            <div id="pendingListArea" class="glass p-8 hidden border-t-4 border-orange-500">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xs font-black text-orange-500 uppercase flex items-center gap-2">
+                            <i class="fas fa-clipboard-list"></i> Antrean Input ASIK
+                        </h3>
+                        <p class="text-[10px] opacity-50 uppercase font-bold mt-1">Klik NIK untuk menyalin</p>
+                    </div>
+                    <span id="pendingCountBadge" class="bg-orange-500 text-white text-[10px] px-3 py-1 rounded-full font-black">0 PASIEN</span>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-6" id="desaFilterContainer">
+                    <button onclick="filterByDesa('ALL')" class="desa-filter-btn active text-[10px] font-black px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-all">SEMUA DESA</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-white/10 opacity-50 uppercase text-[10px]">
+                                <th class="pb-4 px-2">Nama Pasien</th>
+                                <th class="pb-4 px-2">NIK / Identitas</th>
+                                <th class="pb-4 px-2 text-center">Salin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTableBody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // MASTER CONFIG
-        const ICD_DATA = { "K04.0": "Pulpitis", "K04.1": "Necrosis of Pulp", "K08.3": "Retained Dental Root", "K02.1": "Caries of Dentine", "K04.6": "Periapical Abscess", "K30": "Dyspepsia", "I10": "Hypertension", "M79.1": "Myalgia", "J06.9": "ISPA Akut", "J00": "Nasofaringitis", "Z34": "Kontrol Kehamilan", "Z00": "General Check-up", "A16": "TBC Paru (Klinis)", "A15": "TBC Paru (BTA+)", "H10": "Conjunctivitis", "M54.5": "Low Back Pain", "R51": "Headache", "K21": "GERD", "B86": "Scabies", "E11": "Diabetes Melitus Tipe 2", "J45": "Asthma", "K02": "Dental Caries" };
+        const ICD_DATA = { "K04.0": "Pulpitis", "K04.1": "Necrosis of Pulp", "K08.3": "Retained Dental Root", "K02.1": "Caries of Dentine", "I10": "Hypertension", "J06.9": "ISPA Akut", "E11": "Diabetes Melitus", "K21": "GERD", "A15": "TBC (BTA+)", "A16": "TBC (Klinis)" };
         const WILAYAH = ["KIARAPEDES", "PARAKAN GAROKGEK", "CIBEBER", "MARGALUYU", "CIRACAS", "TARINGGUL LANDEUH", "PUSAKAMULYA", "SUMBERSARI", "GARDU", "MEKARJAYA"];
         const MAP_WILAYAH = { "PARAKAN": "PARAKAN GAROKGEK", "KIARAPEDES": "KIARAPEDES", "CIBEBER": "CIBEBER" };
         const KONTAK_WILAYAH = {"KIARAPEDES": "628123456789", "PARAKAN GAROKGEK": "628776543210","CIBEBER": "628198765432", "MARGALUYU": "628521122334", "CIRACAS": "628133445566", "PUSAKAMULYA": "628998877665", "TARINGGUL LANDEUH": "628521122334", "SUMBERSARI": "628133445566", "GARDU": "628998877665", "MEKARJAYA": "628358621012"};
+        const WARNA_DESA = { "KIARAPEDES": "from-blue-500 to-cyan-500", "PARAKAN GAROKGEK": "from-red-500 to-orange-500", "CIBEBER": "from-emerald-500 to-teal-500", "MARGALUYU": "from-purple-500 to-pink-500", "CIRACAS": "from-indigo-500 to-blue-500", "TARINGGUL LANDEUH": "from-yellow-500 to-amber-500", "PUSAKAMULYA": "from-rose-500 to-red-500", "SUMBERSARI": "from-lime-500 to-green-500", "GARDU": "from-fuchsia-500 to-purple-500", "MEKARJAYA": "from-sky-500 to-indigo-500" };
         const URGENT_ICD = ["A15", "A16", "B20", "A01", "A90"];
 
         let DATA_ASIK = { total: 0, desa: {}, nils: [], icd: {}, raw: [] };
         let DATA_EPUS = { total: 0, desa: {}, nils: [], icd: {}, raw: [] };
         let PREV_TOTAL = { asik: 0, epus: 0 };
         let chartObj = null;
+        let CURRENT_FILTER = 'ALL';
 
-        // UI FUNCTIONS
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        function toggleTheme() { document.body.classList.toggle('light-mode'); renderAnalysis(); }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => { btn.innerHTML = icon; }, 1500);
+            });
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            document.getElementById('sideThemeIcon').className = isLight ? 'fas fa-moon text-blue-600 w-6' : 'fas fa-sun text-amber-400 w-6';
+        function filterByDesa(desa) {
+            CURRENT_FILTER = desa;
+            document.querySelectorAll('.desa-filter-btn').forEach(btn => btn.classList.toggle('active', btn.innerText.includes(desa) || (desa === 'ALL' && btn.innerText === 'SEMUA DESA')));
             renderAnalysis();
         }
 
-        // DATA FUNCTIONS
         function extractCodes(row) {
             const str = Object.values(row).join(" ").toUpperCase();
-            return str.match(/[A-Z][0-9][0-9](\.[0-9])?/g) || [];
+            return str.match(/[A-Z]\d{2}(\.\d)?/g) || [];
         }
 
         function handleFileUpload(input, type) {
             const reader = new FileReader();
             document.getElementById(type === 'asik' ? 'nameAsik' : 'nameEpus').innerText = input.files[0].name;
-            
             reader.onload = (e) => {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                 let res = { total: 0, desa: {}, nils: [], icd: {}, raw: json };
                 WILAYAH.forEach(w => res.desa[w] = 0);
-
                 json.forEach(row => {
+                    const nik = row['NIK'] || row['No. KTP'] || row['no_ktp'];
+                    if(nik) res.nils.push(nik.toString());
+                    extractCodes(row).forEach(c => { res.icd[c] = (res.icd[c] || 0) + 1; res.total++; });
                     const rowStr = Object.values(row).join(" ").toUpperCase();
-                    const nik = row['NIK'] || row['No. KTP'] || null;
-                    if(nik) res.nils.push(nik);
-
-                    const codes = extractCodes(row);
-                    codes.forEach(c => { res.icd[c] = (res.icd[c] || 0) + 1; res.total++; });
-
                     let found = null;
                     for (let key in MAP_WILAYAH) { if(rowStr.includes(key)) found = MAP_WILAYAH[key]; }
                     if(!found) WILAYAH.forEach(w => { if(rowStr.includes(w)) found = w; });
                     if(found) res.desa[found]++;
                 });
-
                 if(type === 'asik') { PREV_TOTAL.asik = DATA_ASIK.total; DATA_ASIK = res; }
                 else { PREV_TOTAL.epus = DATA_EPUS.total; DATA_EPUS = res; }
                 renderAnalysis();
@@ -234,87 +256,104 @@
             updateTrend('trendAsik', DATA_ASIK.total, PREV_TOTAL.asik);
             updateTrend('trendEpus', DATA_EPUS.total, PREV_TOTAL.epus);
 
-            const allNIK = [...DATA_ASIK.nils, ...DATA_EPUS.nils];
-            const integrity = allNIK.length > 0 ? (100 - ((allNIK.length - new Set(allNIK).size)/allNIK.length*100)).toFixed(1) : 100;
+            // Data Trust & Alerts
+            const nikAsikSet = new Set(DATA_ASIK.nils);
+            const integrity = DATA_EPUS.nils.length > 0 ? (100 - ((DATA_EPUS.nils.length - new Set(DATA_EPUS.nils).size)/DATA_EPUS.nils.length*100)).toFixed(1) : 100;
             document.getElementById('dataIntegrity').innerText = integrity + "%";
 
-            // ALERTS
             const alertArea = document.getElementById('urgentAlertArea');
             alertArea.innerHTML = ""; alertArea.classList.add('hidden');
             let urgentMsgs = [];
             URGENT_ICD.forEach(code => {
                 const gap = (DATA_EPUS.icd[code] || 0) - (DATA_ASIK.icd[code] || 0);
-                if (gap > 0) {
-                    urgentMsgs.push(code);
-                    alertArea.classList.remove('hidden');
-                    alertArea.innerHTML += `<div class="glass alert-pulse p-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fas fa-biohazard text-red-500"></i><p class="text-sm font-bold">${code}: Selisih ${gap} Kasus!</p></div></div>`;
-                }
+                if (gap > 0) { urgentMsgs.push(code); alertArea.classList.remove('hidden'); alertArea.innerHTML += `<div class="glass alert-pulse p-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fas fa-biohazard text-red-500"></i><p class="text-sm font-bold">${code}: Selisih ${gap} Kasus!</p></div></div>`; }
             });
 
-            // CHART & LOGS
-            const dAsik = WILAYAH.map(w => DATA_ASIK.desa[w] || 0);
-            const dEpus = WILAYAH.map(w => DATA_EPUS.desa[w] || 0);
-            let pending = 0;
+            // Log & Filter Logic
             const log = document.getElementById('validationLog'); log.innerHTML = "";
-
-            WILAYAH.forEach((desa, i) => {
-                const diff = dEpus[i] - dAsik[i];
+            let totalGap = 0;
+            WILAYAH.forEach(desa => {
+                const diff = (DATA_EPUS.desa[desa] || 0) - (DATA_ASIK.desa[desa] || 0);
                 if(diff > 0) {
-                    pending += diff;
-                    const waLink = `https://wa.me/${KONTAK_WILAYAH[desa] || ''}?text=Halo%20Admin%20${desa},%20ada%20gap%20data%20${diff}%20surat%20ASIK.`;
+                    totalGap += diff;
+                    const waLink = `https://wa.me/${KONTAK_WILAYAH[desa]}?text=Halo%20Admin%20${desa},%20ada%20gap%20${diff}%20data%20ASIK.`;
                     log.innerHTML += `<div class="glass p-5 flex justify-between items-center border-l-4 ${diff > target/2 ? 'border-red-500' : 'border-emerald-500'}"><div><p class="text-[9px] font-bold opacity-40 uppercase">${desa}</p><p class="text-xl font-bold mono">${diff}</p></div><a href="${waLink}" target="_blank" class="text-emerald-500"><i class="fab fa-whatsapp text-2xl"></i></a></div>`;
                 }
             });
-
+            document.getElementById('totalPending').innerText = totalGap;
             document.getElementById('statAsik').innerText = DATA_ASIK.total;
             document.getElementById('statEpus').innerText = DATA_EPUS.total;
-            document.getElementById('totalPending').innerText = pending;
 
+            // Chart
             if(chartObj) chartObj.destroy();
             chartObj = new Chart(document.getElementById('mainChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: WILAYAH,
-                    datasets: [
-                        { label: 'ASIK', data: dAsik, backgroundColor: '#10b981', borderRadius: 8 },
-                        { label: 'e-PKM', data: dEpus, backgroundColor: '#06b6d4', borderRadius: 8 }
-                    ]
-                },
+                type: 'bar', data: { labels: WILAYAH, datasets: [{ label: 'ASIK', data: WILAYAH.map(w => DATA_ASIK.desa[w]), backgroundColor: '#10b981' }, { label: 'e-PKM', data: WILAYAH.map(w => DATA_EPUS.desa[w]), backgroundColor: '#06b6d4' }] },
                 options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: isLight ? '#000' : '#fff' } } }, scales: { y: { ticks: { color: isLight ? '#000' : '#fff' } }, x: { ticks: { color: isLight ? '#000' : '#fff' } } } }
             });
 
-            const filtered = Object.entries(DATA_EPUS.icd).filter(([c]) => c.includes(search) || (ICD_DATA[c] && ICD_DATA[c].toUpperCase().includes(search))).sort((a,b)=>b[1]-a[1]).slice(0,10);
-            document.getElementById('icdList').innerHTML = filtered.map(([c, v]) => `<div class="flex flex-col border-b border-white/5 pb-2"><div class="flex justify-between items-center"><span class="font-black text-xs text-emerald-400">${c}</span><span class="mono text-xs font-bold">${v}</span></div><span class="text-[9px] opacity-60 uppercase">${ICD_DATA[c] || 'Lainnya'}</span></div>`).join('');
-            document.getElementById('aiEvaluation').innerText = `Skor Trust: ${integrity}%. ${urgentMsgs.length > 0 ? 'Waspada: ' + urgentMsgs.join(', ') : 'Data cenderung stabil.'}`;
+            // Table Pending
+            const pendingTableBody = document.getElementById('pendingTableBody');
+            const pendingArea = document.getElementById('pendingListArea');
+            const containerFilter = document.getElementById('desaFilterContainer');
+            if (containerFilter.children.length <= 1) WILAYAH.forEach(d => containerFilter.innerHTML += `<button onclick="filterByDesa('${d}')" class="desa-filter-btn text-[10px] font-black px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-all uppercase">${d}</button>`);
+
+            let missingRows = DATA_EPUS.raw.filter(row => {
+                const nik = (row['NIK'] || row['No. KTP'] || row['no_ktp'] || "").toString();
+                const isMissing = nik && !nikAsikSet.has(nik);
+                if (!isMissing) return false;
+                if (CURRENT_FILTER === 'ALL') return true;
+                return Object.values(row).join(" ").toUpperCase().includes(CURRENT_FILTER);
+            });
+
+            if (missingRows.length > 0) {
+                pendingArea.classList.remove('hidden');
+                document.getElementById('pendingCountBadge').innerText = `${missingRows.length} PASIEN`;
+                pendingTableBody.innerHTML = missingRows.slice(0, 15).map(row => {
+                    const nik = (row['NIK'] || row['No. KTP'] || row['no_ktp']).toString();
+                    const nama = (row['Nama'] || row['Nama Pasien'] || "TANPA NAMA").toUpperCase();
+                    let dPasien = "LUAR WILAYAH";
+                    for(let d of WILAYAH) { if(Object.values(row).join(" ").toUpperCase().includes(d)) { dPasien = d; break; } }
+                    const gradien = WARNA_DESA[dPasien] || "from-slate-500 to-slate-700";
+                    return `<tr class="group hover:bg-white/5 transition-all"><td class="py-4 px-2"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br ${gradien} flex items-center justify-center font-black text-white shadow-lg">${nama.charAt(0)}</div><div><p class="font-bold text-sm">${nama}</p><p class="text-[8px] opacity-40 font-bold">${dPasien}</p></div></div></td><td class="py-4 px-2"><span class="mono text-emerald-400 font-bold tracking-widest">${nik}</span></td><td class="py-4 px-2 text-center"><button onclick="copyToClipboard('${nik}', this)" class="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center"><i class="fas fa-copy"></i></button></td></tr>`;
+                }).join('');
+            } else { pendingArea.classList.add('hidden'); }
+
+            const filteredICD = Object.entries(DATA_EPUS.icd).filter(([c]) => c.includes(search) || (ICD_DATA[c] && ICD_DATA[c].toUpperCase().includes(search))).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            document.getElementById('icdList').innerHTML = filteredICD.map(([c, v]) => `<div class="flex flex-col border-b border-white/5 pb-2"><div class="flex justify-between items-center"><span class="font-black text-xs text-emerald-400">${c}</span><span class="mono text-xs font-bold">${v}</span></div><span class="text-[9px] opacity-60 uppercase">${ICD_DATA[c] || 'Diagnosa Lain'}</span></div>`).join('');
+            document.getElementById('aiEvaluation').innerHTML = `Trust: ${integrity}%. ${urgentMsgs.length > 0 ? 'Waspada: ' + urgentMsgs.join(', ') : 'Stabil.'} <br> <span class="text-orange-500 font-bold">${missingRows.length} pasien belum sinkron.</span>`;
         }
 
         function updateTrend(id, cur, pre) {
-            const el = document.getElementById(id);
-            if(pre === 0 || cur === pre) { el.classList.add('opacity-0'); return; }
-            el.classList.remove('opacity-0');
-            const diff = cur - pre;
+            const el = document.getElementById(id); if(pre === 0 || cur === pre) { el.classList.add('opacity-0'); return; }
+            el.classList.remove('opacity-0'); const diff = cur - pre;
             el.innerHTML = diff > 0 ? `↑ ${diff}` : `↓ ${Math.abs(diff)}`;
-            el.className = `text-sm font-bold ${diff > 0 ? 'trend-up' : 'trend-down'}`;
+            el.className = `text-xs font-bold ${diff > 0 ? 'trend-up' : 'trend-down'}`;
+        }
+
+        function downloadMissingData() {
+            const nikAsikSet = new Set(DATA_ASIK.nils);
+            const missing = DATA_EPUS.raw.filter(row => {
+                const nik = (row['NIK'] || row['No. KTP'] || row['no_ktp'] || "").toString();
+                return nik && !nikAsikSet.has(nik);
+            }).map(row => ({ 'NIK': row['NIK'] || row['No. KTP'], 'NAMA': row['Nama'] || row['Nama Pasien'], 'DESA': row['Desa'] || row['Alamat'], 'HP': row['No. HP'] || row['Telepon'] || "-" }));
+            if(missing.length === 0) return alert("Data sudah sinkron!");
+            const ws = XLSX.utils.json_to_sheet(missing); const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Selisih"); XLSX.writeFile(wb, `Selisih_ASIK_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         function exportMergedExcel() {
-            if(!DATA_ASIK.raw.length && !DATA_EPUS.raw.length) return alert("Upload data dulu!");
             const ws = XLSX.utils.json_to_sheet([...DATA_ASIK.raw, ...DATA_EPUS.raw]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Master");
-            XLSX.writeFile(wb, "PKM_Kiarapedes_Master.xlsx");
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Master");
+            XLSX.writeFile(wb, "Master_Data_Merged.xlsx");
         }
 
         function copyWeeklySummary() {
-            const s = `*LAPORAN PKM KIARAPEDES*\n\n✅ ASIK: ${DATA_ASIK.total}\n🏥 e-PKM: ${DATA_EPUS.total}\n⚠️ Gap: ${document.getElementById('totalPending').innerText}\n💎 Trust: ${document.getElementById('dataIntegrity').innerText}`;
-            navigator.clipboard.writeText(s); alert("Disalin!");
+            const s = `*LAPORAN PKM KIARAPEDES*\n✅ ASIK: ${DATA_ASIK.total}\n🏥 e-PKM: ${DATA_EPUS.total}\n⚠️ Gap: ${document.getElementById('totalPending').innerText}`;
+            navigator.clipboard.writeText(s); alert("Ringkasan disalin!");
         }
 
-        function exportLaporanPDF() {
-            html2pdf().from(document.getElementById('printArea')).set({ margin: 10, filename: 'Analisis_Kiarapedes.pdf', jsPDF: { orientation: 'landscape' } }).save();
-        }
+        function exportLaporanPDF() { html2pdf().from(document.getElementById('printArea')).set({ margin: 10, filename: 'Laporan_Analitik.pdf', jsPDF: { orientation: 'landscape' } }).save(); }
 
-        // INIT DATE
         document.getElementById('headerDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     </script>
 </body>
