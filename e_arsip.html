@@ -402,14 +402,14 @@
         "Klaster II: Ibu & Anak": ["440.21 (Ibu Hamil/Nifas)", "440.22 (Balita & Pra-Sekolah)", "440.23 (Anak 0-18 Thn)", "440.24 (Sekolah & Remaja)"],
         "Klaster III: Dewasa & Lansia": ["440.31 (Usia Dewasa)", "440.32 (Lanjut Usia)", "440.25 (KesTrad)", "440.26 (Perkesmas)"],
         "Klaster IV: P2P & Kesling": ["440.41 (P2M)", "440.42 (Surveilans)", "440.43 (Kesling)"],
-        "Lintas Klaster V": ["440.51 (Rawat Jalan)", "440.52 (Rawat Inap)", "440.53 (Laboratorium)", "440.54 (Farmasi)", "440.55 (Promkes)"]
+        "Lintas Klaster": ["440.51 (Rawat Jalan)", "440.52 (Rawat Inap)", "440.53 (Laboratorium)", "440.54 (Farmasi)", "440.55 (Promkes)"]
     };
 
     const CLUSTER_STYLES = {
-        "Klaster 1: Manajemen": { icon: "fa-shield-halved", color: "text-blue-600", bg: "bg-blue-50" },
-        "Klaster 2: Ibu & Anak": { icon: "fa-baby-carriage", color: "text-rose-600", bg: "bg-rose-50" },
-        "Klaster 3: Dewasa & Lansia": { icon: "fa-person-cane", color: "text-amber-600", bg: "bg-amber-50" },
-        "Klaster 4: P2P & Kesling": { icon: "fa-virus-slash", color: "text-emerald-600", bg: "bg-emerald-50" },
+        "Klaster I: Manajemen": { icon: "fa-shield-halved", color: "text-blue-600", bg: "bg-blue-50" },
+        "Klaster II: Ibu & Anak": { icon: "fa-baby-carriage", color: "text-rose-600", bg: "bg-rose-50" },
+        "Klaster III: Dewasa & Lansia": { icon: "fa-person-cane", color: "text-amber-600", bg: "bg-amber-50" },
+        "Klaster IV: P2P & Kesling": { icon: "fa-virus-slash", color: "text-emerald-600", bg: "bg-emerald-50" },
         "Lintas Klaster": { icon: "fa-layer-group", color: "text-indigo-600", bg: "bg-indigo-50" }
     };
 
@@ -417,7 +417,7 @@
         const pinInput = document.getElementById('pinInput').value;
         if (btoa(pinInput) === PIN_HASH) {
             sessionStorage.setItem('is_authenticated', 'true');
-            localStorage.setItem('pkm_session_status', 'AUTHORIZED'); // Sync status
+            localStorage.setItem('pkm_session_status', 'AUTHORIZED');
             document.getElementById('modalLogin').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
             initApp();
