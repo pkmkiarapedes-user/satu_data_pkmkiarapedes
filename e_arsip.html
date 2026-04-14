@@ -185,6 +185,24 @@
     font-family: 'Inter', sans-serif; /* Pastikan menggunakan font yang tegas */
     text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
 }
+.watermark-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 4rem;
+    color: rgba(248, 4, 4, 0.07);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 5;
+    user-select: none;
+    font-weight: 900;
+    text-align: center;
+}
+@media (max-width: 768px) {
+    .watermark-overlay { font-size: 2rem; }
+}
+.dark .watermark-overlay { color: rgba(255, 255, 255, 0.05); }
 </style>
 	
 </head>
@@ -258,39 +276,49 @@
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total Arsip</p>
             <h3 id="statTotal" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-box-archive absolute right-3 bottom-3 text-3xl text-emerald-500/30"></i>
+        <i class="fas fa-box-archive absolute right-3 bottom-3 text-3xl text-emerald-500/10"></i>
     </div>
-
     <div class="card-custom p-5 border-l-4 border-blue-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SK</p>
             <h3 id="statSK" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-file-alt absolute right-3 bottom-3 text-3xl text-blue-500/30"></i>
+        <i class="fas fa-file-signature absolute right-3 bottom-3 text-3xl text-blue-500/10"></i>
     </div>
-
     <div class="card-custom p-5 border-l-4 border-purple-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SOP</p>
             <h3 id="statSOP" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-3xl text-purple-500/30"></i>
+        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-3xl text-purple-500/10"></i>
     </div>
-
     <div class="card-custom p-5 border-l-4 border-rose-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Dok. Lain</p>
             <h3 id="statLain" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-paste absolute right-3 bottom-3 text-3xl text-rose-500/30"></i>
+        <i class="fas fa-folder-tree absolute right-3 bottom-3 text-3xl text-rose-500/10"></i>
     </div>
-
     <div class="card-custom p-5 border-l-4 border-amber-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Klaster</p>
             <h3 id="statKlaster" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-bezier-curve absolute right-3 bottom-3 text-3xl text-amber-500/30"></i>
+        <i class="fas fa-sitemap absolute right-3 bottom-3 text-3xl text-amber-500/10"></i>
+    </div>
+</div>
+
+<div id="modalPreview" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col relative">
+        <div class="watermark-overlay">DOKUMEN PKM KIARAPEDES</div>
+        
+        <div class="p-4 border-b flex justify-between items-center bg-white dark:bg-slate-900 z-10">
+            <h3 class="font-bold dark:text-white text-sm md:text-base">Pratinjau Dokumen</h3>
+            <button onclick="closePreview()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-100 text-slate-500 hover:text-red-500 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <iframe id="previewFrame" class="flex-1 w-full border-none z-0"></iframe>
     </div>
 </div>
 
@@ -657,74 +685,114 @@ document.getElementById('formArsip').onsubmit = async (e) => {
         finally { syncIcon.classList.remove('fa-spin'); }
     }
 
-    function renderTable() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        const fKlaster = document.getElementById('filterKlaster').value;
-        const fJenis = document.getElementById('filterJenis').value;
+   function renderTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const fKlaster = document.getElementById('filterKlaster').value;
+    const fJenis = document.getElementById('filterJenis').value;
 
-        // Filter Berlapis
-        const filtered = database.filter(x => {
-            const matchMode = (x.mode || 'arsip') === currentMode;
-            const matchQ = x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q);
-            const matchK = fKlaster === "" || x.klaster === fKlaster;
-            const matchJ = fJenis === "" || x.jenis === fJenis;
-            return matchMode && matchQ && matchK && matchJ;
-        });
-        
-        // Update Statistik Berdasarkan Filter Aktif
-        document.getElementById('statTotal').innerText = filtered.length;
-        document.getElementById('statSK').innerText = filtered.filter(x => x.jenis === 'SK').length;
-        document.getElementById('statSOP').innerText = filtered.filter(x => x.jenis === 'SOP').length;
-        document.getElementById('statLain').innerText = filtered.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
-        document.getElementById('statKlaster').innerText = [...new Set(filtered.map(x => x.klaster))].length;
+    // 1. Filter Berlapis
+    const filtered = database.filter(x => {
+        const matchMode = (x.mode || 'arsip') === currentMode;
+        const matchQ = x.no.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q);
+        const matchK = fKlaster === "" || x.klaster === fKlaster;
+        const matchJ = fJenis === "" || x.jenis === fJenis;
+        return matchMode && matchQ && matchK && matchJ;
+    });
+    
+    // 2. Update Statistik Berdasarkan Filter Aktif (Ikon sudah ada di HTML)
+    document.getElementById('statTotal').innerText = filtered.length;
+    document.getElementById('statSK').innerText = filtered.filter(x => x.jenis === 'SK').length;
+    document.getElementById('statSOP').innerText = filtered.filter(x => x.jenis === 'SOP').length;
+    document.getElementById('statLain').innerText = filtered.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
+    document.getElementById('statKlaster').innerText = [...new Set(filtered.map(x => x.klaster))].length;
 
-        document.getElementById('tableBody').innerHTML = filtered.map((x) => {
-            // Logika Retensi Otomatis
-            const retensiLabel = x.retensi || "✅ Aktif"; 
-            let retColor = "bg-slate-100 text-slate-400";
+    // 3. Render Baris Tabel
+    document.getElementById('tableBody').innerHTML = filtered.map((x) => {
+        // Logika Retensi Otomatis
+        const retensiLabel = x.retensi || "✅ Aktif"; 
+        let retColor = "bg-slate-100 text-slate-400";
 
-            if (retensiLabel.includes("PERMANEN")) retColor = "bg-emerald-100 text-emerald-700";
-            else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) retColor = "bg-rose-100 text-rose-700 animate-pulse";
-            else if (/🕒|Hampir/i.test(retensiLabel)) retColor = "bg-amber-100 text-amber-700";
+        if (retensiLabel.includes("PERMANEN")) retColor = "bg-emerald-100 text-emerald-700";
+        else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) retColor = "bg-rose-100 text-rose-700 animate-pulse";
+        else if (/🕒|Hampir/i.test(retensiLabel)) retColor = "bg-amber-100 text-amber-700";
 
-            const originalIndex = database.findIndex(item => item.no === x.no);
+        // Mencari index asli untuk tombol Aksi
+        const originalIndex = database.findIndex(item => item.no === x.no);
 
-            return `
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td class="p-4">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
-                        <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retColor}">${retensiLabel}</span>
-                    </div>
-                    <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
-                    <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
-                        <i class="far fa-folder mr-1"></i>${x.klaster} | <i class="far fa-calendar-alt mr-1"></i>${x.tgl}
-                        ${x.asal && x.asal !== '-' ? ` | Dari: ${x.asal}` : ''}
-                    </div>
-                </td>
-                <td class="p-4 text-center">
-                    <span class="px-2 py-1 rounded-full text-[11px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
-                </td>
-                <td class="p-4">
-                    <div class="flex justify-center gap-2 whitespace-nowrap">
-                        <button onclick="cetakBarcode(${originalIndex})" class="btn-action bg-slate-50 hover:bg-emerald-500 hover:text-white dark:bg-slate-200"><i class="fas fa-qrcode"></i></button>
-                        <button onclick="editData(${originalIndex})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white"><i class="fas fa-pen"></i></button>
-                        <button onclick="openPreview('${x.link}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white"><i class="fas fa-eye"></i></button>
-                        <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white"><i class="fas fa-trash"></i></button>
-                    </div>
-                </td>
-            </tr>`;
-        }).join('');
+        return `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b dark:border-slate-800 transition-colors">
+            <td class="p-4">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-mono text-emerald-600 font-black text-[10px]">${x.no}</span>
+                    <span class="text-[7px] px-1.5 py-0.5 rounded font-bold ${retColor}">${retensiLabel}</span>
+                </div>
+                <div class="font-bold uppercase text-slate-700 dark:text-slate-200 leading-tight">${x.nama}</div>
+                <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                    <i class="far fa-folder mr-1"></i>${x.klaster} | <i class="far fa-calendar-alt mr-1"></i>${x.tgl}
+                    ${x.asal && x.asal !== '-' ? ` | Dari: ${x.asal}` : ''}
+                </div>
+            </td>
+            <td class="p-4 text-center hidden md:table-cell">
+                <span class="px-2 py-1 rounded-full text-[11px] font-black bg-slate-100 dark:bg-slate-800">${x.jenis || 'DOC'}</span>
+            </td>
+            <td class="p-4">
+                <div class="flex justify-center gap-2 whitespace-nowrap">
+                    <button onclick="cetakBarcode(${originalIndex})" class="btn-action bg-slate-100 dark:bg-slate-700 hover:bg-emerald-500 hover:text-white" title="QR Code">
+                        <i class="fas fa-qrcode"></i>
+                    </button>
+                    <button onclick="editData(${originalIndex})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white" title="Edit">
+                        <i class="fas fa-pen text-[10px]"></i>
+                    </button>
+                    <button onclick="openPreview('${x.link}', '${x.nama}')" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white" title="Lihat">
+                        <i class="fas fa-eye text-[10px]"></i>
+                    </button>
+                    <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white" title="Hapus">
+                        <i class="fas fa-trash text-[10px]"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    // Update Placeholder No Urut Terakhir
+    const maxNo = database
+        .filter(x => (x.mode || 'arsip') === currentMode)
+        .map(x => {
+            const p = x.no.split('/');
+            return p.length > 1 ? parseInt(p[1], 10) : 0;
+        })
+        .reduce((a, b) => Math.max(a, b), 0);
+    document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
+}
+
+/**
+ * FUNGSI PREVIEW DENGAN PROTEKSI & WATERMARK
+ */
+function openPreview(link, namaDokumen = "") {
+    if(!link || link === 'undefined' || link === '') return alert("File tidak ditemukan!");
+
+    const namaUpper = namaDokumen.toUpperCase();
+
+    // 1. Proteksi Dokumen Keuangan/Sensitif
+    if (namaUpper.includes("KEUANGAN") || namaUpper.includes("GAJI") || namaUpper.includes("DANA")) {
+        const pin = prompt("⚠️ DOKUMEN SENSITIF!\nMasukkan PIN Verifikasi untuk melihat:");
+        if (btoa(pin) !== PIN_HASH) { // PIN_HASH adalah "MjAyNg=="
+            alert("Akses Ditolak! PIN Salah.");
+            return;
+        }
     }
 
-const maxNo = database
-    .filter(x => (x.mode || 'arsip') === currentMode)
-    .map(x => {
-        const p = x.no.split('/');
-        return p.length > 1 ? parseInt(p[1], 10) : 0;
-    })
-    .reduce((a, b) => Math.max(a, b), 0);
-document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
+    // 2. Update Teks Watermark
+    const wm = document.querySelector('.watermark-overlay');
+    if (wm) {
+        wm.innerText = namaUpper.includes("KEUANGAN") ? "RAHASIA NEGARA" : "PKM KIARAPEDES";
+    }
+
+    // 3. Tampilkan Dokumen
+    const frame = document.getElementById('previewFrame');
+    frame.src = link.replace('/view', '/preview');
+    document.getElementById('modalPreview').classList.remove('hidden');
+}
 		
     function cetakBarcode(i) {
         const data = database[i];
@@ -822,12 +890,6 @@ document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
             document.getElementById('pedomanContent').innerHTML = h;
             m.classList.remove('hidden');
         } else m.classList.add('hidden');
-    }
-
-    function openPreview(link) {
-        if(!link || link === 'undefined' || link === '') return alert("File tidak ditemukan!");
-        document.getElementById('previewFrame').src = link.replace('/view', '/preview');
-        document.getElementById('modalPreview').classList.remove('hidden');
     }
 
     function closePreview() { document.getElementById('modalPreview').classList.add('hidden'); document.getElementById('previewFrame').src = ""; }
