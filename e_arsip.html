@@ -351,7 +351,7 @@
                             <span class="text-[10px] font-bold uppercase">Upload PDF (Max 2MB)</span>
                         </label>
 
-                        <p class="text-sm font-italic text-black-900">"CENTANG" Apabila dokumen akan di Password</p>
+                        <p class="text-sm font-italic text-red-500">"CENTANG" apabila dokumen diberi Password</p>
                     <div class="space-y-2 border-l-4 border-emerald-600 pl-4 bg-emerald-50 p-3 rounded-lg mb-4">
                 <label class="flex items-center space-x-2 cursor-pointer">
               <input type="checkbox" id="isRahasia" class="w-4 h-4 text-emerald-600" onchange="togglePassField()">
@@ -445,8 +445,8 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxahUM4I2R-gbN6OeTdq_RIlRe4oOLnZT8b_o_d40BDtBdpLGY9_cU2gQxsEEAkiMFxEw/exec";
-	const PIN_HASH = "MjAyNg=="; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxaloavvGjSNyyH8vJkNGzig0KakDeu5Zmr-nGasSl4YU-MkcQnB0M4K5ReC7wxMbSD2g/exec";
+    const PIN_HASH = "MjAyNg=="; 
     let database = JSON.parse(localStorage.getItem('db_arsip_kpds')) || [];
     let currentMode = 'arsip';
     let editIndex = null;
@@ -795,58 +795,62 @@ function generatePreview() {
     document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
 }
 
-/**
- * FUNGSI PREVIEW DENGAN PROTEKSI PASSWORD SHA-256
- */
 async function openPreview(index) {
-    // 1. Ambil data berdasarkan index dari array database
+    console.log("Membuka index:", index); // Debug: Cek angka index yang masuk
+    console.log("Isi database:", database); // Debug: Cek apakah database ada isinya
+
+    // 1. Ambil data
     const item = database[index];
-    if (!item || !item.link) {
-        alert("File tidak ditemukan!");
+    
+    // 2. Validasi ketat
+    if (!item) {
+        alert("Data arsip tidak ditemukan! (Error Index: " + index + ")");
+        return;
+    }
+    
+    if (!item.link) {
+        alert("Error: Link dokumen tidak tersedia.");
         return;
     }
 
-    const namaUpper = item.nama.toUpperCase();
-    // Konversi link Google Drive agar bisa tampil di Iframe
-    const linkPreview = item.link.replace('/view', '/preview');
-
-    // 2. LOGIKA KEAMANAN (Password)
-    // Cek apakah isRahasia true (mendukung format boolean atau string dari GAS)
-    const statusRahasia = item.isRahasia === true || item.isRahasia === "true";
+    // 3. Logika Password & Watermark
+    const statusRahasia = String(item.isRahasia) === "true";
     
     if (statusRahasia) {
-        const inputUser = prompt("🔐 DOKUMEN INI DIPROTEKSI!\nMasukkan password dokumen:");
-        
-        if (inputUser === null) return; // Batal jika user menekan 'Cancel'
+        const passInput = prompt("🔐 Dokumen ini bersifat RAHASIA. Masukkan Password:");
+        if (passInput === null) return;
 
-        const hashedInput = await hashPassword(inputUser);
-
+        const hashedInput = await hashPassword(passInput);
         if (hashedInput !== item.pass) {
-            alert("🚫 Password Salah! Akses ditolak.");
+            alert("🚫 Password Salah!");
             return;
         }
     }
 
-    // 3. UPDATE TAMPILAN (Watermark & Judul)
+    // 4. Update UI Modal
+    const titleEl = document.getElementById('previewTitle');
+    const frame = document.getElementById('previewFrame');
+    const modal = document.getElementById('modalPreview');
     const wm = document.querySelector('.watermark-overlay');
+
+    if (titleEl) titleEl.innerText = "PREVIEW: " + item.nama.toUpperCase();
+    
     if (wm) {
         wm.innerText = statusRahasia ? "DOKUMEN PENTING" : "PKM KIARAPEDES";
         wm.style.color = statusRahasia ? "rgba(220, 38, 38, 0.1)" : "rgba(15, 23, 42, 0.05)";
     }
 
-    const titleEl = document.getElementById('previewTitle');
-    if (titleEl) titleEl.innerText = "PREVIEW: " + namaUpper;
-
-    // 4. LOAD KE IFRAME
-    const frame = document.getElementById('previewFrame');
-    const modal = document.getElementById('modalPreview');
-    
+    // 5. Load Iframe
     if (frame && modal) {
-        frame.src = "about:blank"; // Reset frame agar tidak menampilkan file sebelumnya
+        // Konversi link Drive agar bisa di-embed
+        const linkPreview = item.link.replace('/view', '/preview');
+        
+        frame.src = "about:blank";
+        modal.classList.remove('hidden');
+        
         setTimeout(() => {
             frame.src = linkPreview;
-            modal.classList.remove('hidden');
-        }, 100);
+        }, 150);
     }
 }
 		
