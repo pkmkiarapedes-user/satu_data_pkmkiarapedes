@@ -799,24 +799,40 @@ function generatePreview() {
         win.document.write(`<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><style>body{text-align:center;padding:20px;font-family:sans-serif}.box{border:3px solid #000;padding:20px;border-radius:15px;display:inline-block;width:250px}#qr{margin:20px auto;display:flex;justify-content:center}.no{font-weight:900;font-size:14px;border-bottom:2px solid #000;padding-bottom:10px}</style></head><body><div class="box"><div class="no">${data.no}</div><div id="qr"></div><div class="nama" style="font-size:10px;font-weight:bold;text-transform:uppercase">${data.nama}</div></div><script>new QRCode(document.getElementById("qr"),{text:"${data.link}",width:150,height:150});setTimeout(()=>window.print(),500)<\/script></body></html>`);
     }
 
-    function editData(i) {
+   function editData(i) {
     editIndex = i;
-    const d = database[i];
+    const d = database[i]; 
     currentEditNo = d.no; 
+    document.getElementById('namaDokumen').value = d.nama || ""; 
+    document.getElementById('noSurat').value = d.no.replace(/'/g, "");
+    document.getElementById('klaster').value = d.klaster || "";
+    document.getElementById('subKlaster').value = d.sub || "";
+    document.getElementById('jenisSurat').value = d.jenis || "";
+    document.getElementById('tglSurat').value = d.tgl || "";
+    if(document.getElementById('asalSurat')) {
+        document.getElementById('asalSurat').value = d.asal || "-";
+    }
+    if(document.getElementById('tujuanSurat')) {
+        document.getElementById('tujuanSurat').value = d.tujuan || "-";
+    }
+
     const isChecked = d.isRahasia === true || String(d.isRahasia).toLowerCase() === "true";
     document.getElementById('isRahasia').checked = isChecked;
     
     if (isChecked) {
         document.getElementById('passContainer').classList.remove('hidden');
-        // Kosongkan input password saat edit demi keamanan (user harus input ulang jika ingin ganti)
         document.getElementById('filePass').value = "";
         document.getElementById('confirmPass').value = "";
     } else {
         document.getElementById('passContainer').classList.add('hidden');
     }
-    generatePreview();
+    generatePreview(); 
     document.getElementById('btnSimpan').innerText = "UPDATE DATA";
     document.getElementById('btnBatal').classList.remove('hidden');
+    document.getElementById('labelFile').innerHTML = `
+        <i class="fas fa-file-pdf text-xl text-amber-500 mb-1"></i>
+        <span class="text-[10px] font-bold uppercase">File Tersimpan (Klik untuk ganti)</span>
+    `;
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 	
