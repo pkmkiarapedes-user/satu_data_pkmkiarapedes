@@ -654,8 +654,8 @@ function generatePreview() {
         tgl: document.getElementById('arsipTgl').value,
         asal: document.getElementById('inpAsal').value,
         tujuan: document.getElementById('inpTujuan').value,
-        isRahasia: isRahasia, // Kirim status rahasia ke backend
-        pass: secureHash,     // Kirim Hash (Bukan teks asli)
+        isRahasia: isRahasia,
+        pass: secureHash,
         fileData: fileData ? fileData.base64 : null 
     };
 
@@ -893,14 +893,17 @@ async function openPreview(index) {
         } else if(pin) { alert("PIN SALAH!"); }
     }
 
-    function resetForm() {
-        editIndex = null; currentEditNo = null; fileData = null;
-        document.getElementById('formArsip').reset();
-        document.getElementById('btnSimpan').innerText = "SIMPAN & ARSIPKAN";
-        document.getElementById('btnBatal').classList.add('hidden');
-        document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
-        document.getElementById('progressContainer').classList.add('hidden');
-        setAutoNumber();
+   	function resetForm() {
+    document.getElementById('formArsip').reset();
+    document.getElementById('passContainer').classList.add('hidden'); // Sembunyikan input password
+    editIndex = null; 
+	currentEditNo = null; 
+	fileData = null;
+    document.getElementById('btnSimpan').innerText = "SIMPAN & ARSIPKAN";
+    document.getElementById('btnBatal').classList.add('hidden');
+    document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
+    document.getElementById('progressContainer').classList.add('hidden');
+    setAutoNumber();
     }
 
     function togglePedoman() {
