@@ -190,18 +190,15 @@
     left: 50%;
     transform: translate(-50%, -50%) rotate(-45deg);
     font-size: 4rem;
-    color: rgba(248, 4, 4, 0.07);
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 5;
-    user-select: none;
     font-weight: 900;
+    z-index: 50; /* Di atas iframe */
+    pointer-events: none; /* KRUSIAL: Agar klik tetap bisa tembus ke dokumen di bawahnya */
+    user-select: none;
     text-align: center;
+    width: 100%;
+    opacity: 0.15;
+    white-space: nowrap;
 }
-@media (max-width: 768px) {
-    .watermark-overlay { font-size: 2rem; }
-}
-.dark .watermark-overlay { color: rgba(255, 255, 255, 0.05); }
 </style>
 	
 </head>
@@ -351,11 +348,10 @@
                             <span class="text-[10px] font-bold uppercase">Upload PDF (Max 2MB)</span>
                         </label>
 
-                        <p class="text-sm font-italic text-red-500">"CENTANG" apabila dokumen diberi Password</p>
                     <div class="space-y-2 border-l-4 border-emerald-600 pl-4 bg-emerald-50 p-3 rounded-lg mb-4">
                 <label class="flex items-center space-x-2 cursor-pointer">
               <input type="checkbox" id="isRahasia" class="w-4 h-4 text-emerald-600" onchange="togglePassField()">
-         <span class="text-sm font-bold text-emerald-800 uppercase">Password Dokumen</span></label>
+         <span class="text-sm font-bold text-emerald-800 uppercase">"CENTANG" apabila dokumen diberi Password</span></label>
         </div>
 
 <div id="passContainer" class="hidden space-y-3 animate-fade-in mb-4">
@@ -795,65 +791,6 @@ function generatePreview() {
     document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
 }
 
-async function openPreview(index) {
-    console.log("Membuka index:", index); // Debug: Cek angka index yang masuk
-    console.log("Isi database:", database); // Debug: Cek apakah database ada isinya
-
-    // 1. Ambil data
-    const item = database[index];
-    
-    // 2. Validasi ketat
-    if (!item) {
-        alert("Data arsip tidak ditemukan! (Error Index: " + index + ")");
-        return;
-    }
-    
-    if (!item.link) {
-        alert("Error: Link dokumen tidak tersedia.");
-        return;
-    }
-
-    // 3. Logika Password & Watermark
-    const statusRahasia = String(item.isRahasia) === "true";
-    
-    if (statusRahasia) {
-        const passInput = prompt("🔐 Dokumen ini bersifat RAHASIA. Masukkan Password:");
-        if (passInput === null) return;
-
-        const hashedInput = await hashPassword(passInput);
-        if (hashedInput !== item.pass) {
-            alert("🚫 Password Salah!");
-            return;
-        }
-    }
-
-    // 4. Update UI Modal
-    const titleEl = document.getElementById('previewTitle');
-    const frame = document.getElementById('previewFrame');
-    const modal = document.getElementById('modalPreview');
-    const wm = document.querySelector('.watermark-overlay');
-
-    if (titleEl) titleEl.innerText = "PREVIEW: " + item.nama.toUpperCase();
-    
-    if (wm) {
-        wm.innerText = statusRahasia ? "DOKUMEN PENTING" : "PKM KIARAPEDES";
-        wm.style.color = statusRahasia ? "rgba(220, 38, 38, 0.1)" : "rgba(15, 23, 42, 0.05)";
-    }
-
-    // 5. Load Iframe
-    if (frame && modal) {
-        // Konversi link Drive agar bisa di-embed
-        const linkPreview = item.link.replace('/view', '/preview');
-        
-        frame.src = "about:blank";
-        modal.classList.remove('hidden');
-        
-        setTimeout(() => {
-            frame.src = linkPreview;
-        }, 150);
-    }
-}
-		
     function cetakBarcode(i) {
         const data = database[i];
         const win = window.open('', '_blank', 'width=400,height=500');
@@ -955,9 +892,7 @@ async function openPreview(index) {
             m.classList.remove('hidden');
         } else m.classList.add('hidden');
     }
-
-    function closePreview() { document.getElementById('modalPreview').classList.add('hidden'); document.getElementById('previewFrame').src = ""; }
-    
+   
     function toggleTheme() { 
         document.documentElement.classList.toggle('dark');
         document.getElementById('themeIcon').className = document.documentElement.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
@@ -1045,14 +980,6 @@ function togglePassword(id) {
     }
 }
 
-async function hashPassword(string) {
-    if (!string) return "";
-    const utf8 = new TextEncoder().encode(string);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 function togglePassField() {
     const isChecked = document.getElementById('isRahasia').checked;
     const container = document.getElementById('passContainer');
@@ -1088,6 +1015,78 @@ function togglePasswordView(inputId, iconId) {
     } else {
         console.error("Elemen dengan ID " + inputId + " atau " + iconId + " tidak ditemukan!");
     }
+}
+
+async function openPreview(index) {
+    const item = database[index];
+    if (!item) return alert("Data tidak ditemukan!");
+
+    const modal = document.getElementById('modalPreview');
+    const frame = document.getElementById('previewFrame');
+    const titleEl = document.getElementById('previewTitle');
+    const wm = document.querySelector('.watermark-overlay');
+
+    // --- LOGIKA PASSWORD (DIKUNCI DI SINI) ---
+    // Pastikan pengecekan mencakup berbagai kemungkinan format data dari Sheets
+    const statusRahasia = item.isRahasia === true || 
+                         String(item.isRahasia).toLowerCase() === "true" || 
+                         (item.pass && item.pass.length > 10);
+
+    if (statusRahasia) {
+        console.log("Dokumen Terkunci. Menunggu Password...");
+        const inputUser = prompt("🔐 DOKUMEN SANGAT RAHASIA!\nMasukkan password untuk membuka:");
+        
+        if (inputUser === null) return; // Klik batal, berhenti total
+
+        const hashedInput = await hashPassword(inputUser);
+        
+        if (hashedInput !== item.pass) {
+            alert("🚫 Password Salah! Akses Ditolak.");
+            return; // Password salah, berhenti total
+        }
+    }
+
+    // --- LOGIKA WATERMARK (TEBAL & BERWARNA) ---
+    if (wm) {
+        wm.style.display = "block";
+        if (statusRahasia) {
+            wm.innerText = "DOKUMEN RAHASIA";
+            wm.style.color = "#dc2626"; // Merah tegas (Hex lebih stabil dari RGBA)
+            wm.style.fontWeight = "900"; // Paksa tebal
+        } else {
+            wm.innerText = "PKM KIARAPEDES";
+            wm.style.color = "#0f172a"; // Biru gelap tegas
+            wm.style.fontWeight = "900";
+        }
+    }
+
+    // --- TAMPILKAN DOKUMEN ---
+    if (titleEl) titleEl.innerText = "PREVIEW: " + item.nama.toUpperCase();
+    
+    let cleanLink = item.link || "";
+    if (cleanLink.includes('/view')) {
+        cleanLink = cleanLink.replace(/\/view.*$/, '/preview');
+    }
+
+    frame.src = "about:blank";
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        frame.src = cleanLink;
+    }, 150);
+}
+
+async function hashPassword(string) {
+    if (!string) return "";
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+
+function closePreview() {
+    document.getElementById('modalPreview').classList.add('hidden');
+    document.getElementById('previewFrame').src = "";
 }
 
 window.onload = () => {
