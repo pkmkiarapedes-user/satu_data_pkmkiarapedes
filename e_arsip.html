@@ -2,15 +2,14 @@
 <html lang="id" class="light">
 	
 <script>
-    (function() {
-        const session = localStorage.getItem('pkm_session_status');
-        // Konsistensi dengan verifikasiPin: cek authorized atau session PIN
-        if (session !== 'AUTHORIZED' && !sessionStorage.getItem('arsip_session_pin')) {
-            alert("Sesi tidak ditemukan. Silahkan login terlebih dahulu.");
-            window.location.href = "index.html";
-        }
-    })();
-</script>
+        (function() {
+            // Perbaikan: Konsistensi pengecekan session
+            const session = localStorage.getItem('pkm_session_status');
+            if (session !== 'AUTHORIZED') {
+                // Jangan langsung redirect jika elemen modalLogin ada (akan ditangani window.onload)
+            }
+        })();
+    </script>
 	
 <head>
     <meta charset="UTF-8">
@@ -174,7 +173,7 @@
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 15px 25px;
+    padding: 3px 25px;
     border-radius: 20px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     display: inline-block;
@@ -220,97 +219,81 @@
 </div>
 
 <aside id="sidebar" class="bg-slate-900 text-white flex flex-col shrink-0 overflow-hidden border-r border-slate-800">
-    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+    <div class="h-12 px-4 border-b border-slate-800 flex items-center gap-3 shrink-0">
         <button onclick="document.getElementById('sidebar').classList.toggle('closed')" 
-                class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors">
+                class="w-10 h-10 rounded-xl hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors shrink-0">
             <i class="fas fa-bars text-lg"></i>
         </button>
-        <div class="flex items-center gap-2">
-            <div class="fas fa-folder-open" style="font-size:24px; color:#ffff00"></div>
-            <h1><div class="text-lg font-black italic leading-none">E-<span class="text-emerald-500">ARSIP</span></div></h1>
+        <div class="flex items-center gap-2 overflow-hidden transition-opacity duration-300 sidebar-content">
+            <div class="fas fa-folder-open" style="font-size:20px; color:#ffff00"></div>
+            <h1 class="text-lg font-black italic leading-none tracking-tighter">E-<span class="text-emerald-500">ARSIP</span></h1>
         </div>
     </div>
-    
-    <div class="flex-1 overflow-y-auto custom-scrollbar pt-2">
-        <p class="text-[11px] font-bold text-slate-500 uppercase px-6 py-2 tracking-wider">Menu Utama</p>
-
-		<a href="index.html" target="_blank" class="nav-btn">
-            <i class="fas fa-home w-5 text-lg"></i> <span>Home</span>
-        </a>
-        <button onclick="switchMode('arsip')" id="btn-arsip" class="nav-btn active">
-            <i class="fas fa-inbox w-5 text-lg"></i> <span>Arsip Digital</span>
-        </button>
-        <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn">
-            <i class="fas fa-file-import w-5 text-lg"></i> <span>Surat Masuk</span>
-        </button>
-        <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn">
-            <i class="fas fa-file-export w-5 text-lg"></i> <span>Surat Keluar</span>
-        </button>
-        <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn">
-            <i class="fas fa-book w-5 text-lg"></i> <span>Buku Agenda</span>
-        </button>
-        <a href="https://puskesmaskiarapedes.blogspot.com/p/form-surat-tugas.html" target="_blank" class="nav-btn">
-            <i class="fas fa-edit w-5 text-lg"></i> <span>Buat Surat Tugas</span>
-        </a>
+		<a href="index.html" target="_blank" class="nav-btn"><i class="fas fa-home w-5 text-lg"></i> <span>Home</span></a>
+        <button onclick="switchMode('arsip')" id="btn-arsip" class="nav-btn active"><i class="fas fa-inbox w-5 text-lg"></i> <span>Arsip Digital</span></button>
+        <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn"><i class="fas fa-file-import w-5 text-lg"></i> <span>Surat Masuk</span></button>
+        <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn"><i class="fas fa-file-export w-5 text-lg"></i> <span>Surat Keluar</span></button>
+        <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn"><i class="fas fa-book w-5 text-lg"></i> <span>Buku Agenda</span></button>
+        <a href="https://puskesmaskiarapedes.blogspot.com/p/form-surat-tugas.html" target="_blank" class="nav-btn"><i class="fas fa-edit w-5 text-lg"></i> <span>Buat Surat Tugas</span></a>
         
         <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
-            <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> <span>Panduan</span></button>
-            <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> <span>Sinkronisasi</span></button>
-            <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> <span>Export Excel</span></button>
-            <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> <span>Tema</span></button>
-            <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-rose-500"></i> <span>Keluar</span></button>
+        <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> <span>Panduan</span></button>
+        <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> <span>Sinkronisasi</span></button>
+        <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> <span>Export Excel</span></button>
+        <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> <span>Tema</span></button>
+        <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-rose-500"></i> <span>Keluar</span></button>
         </div>
     </div>
 </aside>
 
 <div id="mainContent" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
-    <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-6 shrink-0">
+    <header class="h-12 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-6 shrink-0">
         <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
-        <div id="clock" class="text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">--:--:--</div>
+        <div id="clock" class="text-[9px] font-mono font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">--:--:--</div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+    <main class="flex-1 overflow-y-auto px-4 lg:px-6 pt-2 pb-6 custom-scrollbar">
        <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
     <div class="card-custom p-5 border-l-4 border-emerald-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total Arsip</p>
             <h3 id="statTotal" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-box-archive absolute right-3 bottom-3 text-3xl text-emerald-500/10"></i>
+        <i class="fas fa-box-archive absolute right-3 bottom-3 text-3xl text-emerald-500/50"></i>
     </div>
     <div class="card-custom p-5 border-l-4 border-blue-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SK</p>
             <h3 id="statSK" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-file-signature absolute right-3 bottom-3 text-3xl text-blue-500/10"></i>
+        <i class="fas fa-file-signature absolute right-3 bottom-3 text-3xl text-blue-500/50"></i>
     </div>
     <div class="card-custom p-5 border-l-4 border-purple-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SOP</p>
             <h3 id="statSOP" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-3xl text-purple-500/10"></i>
+        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-3xl text-purple-500/50"></i>
     </div>
     <div class="card-custom p-5 border-l-4 border-rose-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Dok. Lain</p>
             <h3 id="statLain" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-folder-tree absolute right-3 bottom-3 text-3xl text-rose-500/10"></i>
+        <i class="fas fa-folder-tree absolute right-3 bottom-3 text-3xl text-rose-500/50"></i>
     </div>
     <div class="card-custom p-5 border-l-4 border-amber-500 relative overflow-hidden">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Klaster</p>
             <h3 id="statKlaster" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-sitemap absolute right-3 bottom-3 text-3xl text-amber-500/10"></i>
+        <i class="fas fa-sitemap absolute right-3 bottom-3 text-3xl text-amber-500/50"></i>
     </div>
 </div>
 
 <div id="modalPreview" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm">
     <div class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col relative">
-        <div class="watermark-overlay">DOKUMEN PKM KIARAPEDES</div>
+        <div class="watermark-overlay">PKM KIARAPEDES</div>
         
         <div class="p-4 border-b flex justify-between items-center bg-white dark:bg-slate-900 z-10">
             <h3 class="font-bold dark:text-white text-sm md:text-base">Pratinjau Dokumen</h3>
@@ -322,7 +305,7 @@
     </div>
 </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
             <div class="xl:col-span-4">
                 <div class="card-custom p-6 bg-white dark:bg-slate-900 sticky top-0 shadow-xl">
                     <form id="formArsip" class="space-y-4">
@@ -331,8 +314,8 @@
                             <h4 id="displayNomor" class="font-mono font-bold text-[11px] break-all">---</h4>
                         </div>
 
-                        <div id="arsipOnly" class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4">
+                        <div id="arsipOnly" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
                                 <select id="selKlaster" class="input-modern" onchange="updateSub()"></select>
                                 <select id="selSub" class="input-modern" onchange="generatePreview()"></select>
                             </div>
@@ -355,7 +338,7 @@
                             <input type="text" id="inpTujuan" class="input-modern" placeholder="Tujuan Surat">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-2">
                             <input type="number" id="noUrut" class="input-modern" placeholder="No Urut" required oninput="generatePreview()">
                             <input type="date" id="arsipTgl" class="input-modern" required onchange="generatePreview()">
                         </div>
@@ -367,7 +350,32 @@
                             <i class="fas fa-cloud-arrow-up text-xl text-emerald-500 mb-1"></i>
                             <span class="text-[10px] font-bold uppercase">Upload PDF (Max 2MB)</span>
                         </label>
-						
+
+                        <p class="text-sm font-italic text-black-900">"CENTANG" Apabila dokumen akan di Password</p>
+                    <div class="space-y-2 border-l-4 border-emerald-600 pl-4 bg-emerald-50 p-3 rounded-lg mb-4">
+                <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="isRahasia" class="w-4 h-4 text-emerald-600" onchange="togglePassField()">
+         <span class="text-sm font-bold text-emerald-800 uppercase">Password Dokumen</span></label>
+        </div>
+
+<div id="passContainer" class="hidden space-y-3 animate-fade-in mb-4">
+    <div class="relative">
+        <input type="password" id="filePass" class="input-modern pr-10 border-rose-200 focus:border-rose-500" placeholder="Buat Password Dokumen">
+        <button type="button" onclick="togglePassword('filePass')" class="absolute right-3 top-3 text-slate-400 hover:text-emerald-500">
+            <i class="fas fa-eye" id="eye-filePass"></i>
+        </button>
+    </div>
+    
+    <div class="relative">
+        <input type="password" id="confirmPass" class="input-modern pr-10 border-rose-200" placeholder="Konfirmasi Password">
+        <button type="button" onclick="togglePassword('confirmPass')" class="absolute right-3 top-3 text-slate-400 hover:text-emerald-500">
+            <i class="fas fa-eye" id="eye-confirmPass"></i>
+        </button>
+        <p id="passError" class="text-[10px] text-rose-500 hidden mt-1 font-bold">* Password tidak cocok!</p>
+    </div>
+    <p class="text-[10px] text-slate-500 italic">* Dokumen ini hanya bisa dibuka dengan password yang anda buat</p>
+</div>
+
 						<div id="progressContainer" class="hidden w-full bg-blue-50 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden border border-blue-100 dark:border-blue-900">
 						    <div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(37,99,235,0.5)]" style="width: 0%"></div>
 						    <p id="progressText" class="text-[10px] font-bold text-blue-700 dark:text-blue-400 mt-1.5 text-center tracking-widest">MEMPROSES... 0%</p>
@@ -380,7 +388,7 @@
             </div>
 
             <div class="xl:col-span-8">
-                <div class="card-custom p-4 mb-6 bg-white dark:bg-slate-900 flex flex-wrap gap-4">
+                <div class="card-custom p-4 mb-6 bg-white dark:bg-slate-900 flex flex-wrap gap-2">
                     <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari nomor atau perihal..." class="input-modern flex-1 min-w-[200px]">
                     
                     <select id="filterKlaster" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
@@ -398,6 +406,7 @@
                     </select>
                 </div>
 
+                <div class="xl:col-span-8"></div>
                 <div class="card-custom overflow-hidden bg-white dark:bg-slate-900 shadow-xl">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-[11px]">
@@ -436,8 +445,8 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxaloavvGjSNyyH8vJkNGzig0KakDeu5Zmr-nGasSl4YU-MkcQnB0M4K5ReC7wxMbSD2g/exec";
-    const PIN_HASH = "MjAyNg=="; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxahUM4I2R-gbN6OeTdq_RIlRe4oOLnZT8b_o_d40BDtBdpLGY9_cU2gQxsEEAkiMFxEw/exec";
+	const PIN_HASH = "MjAyNg=="; 
     let database = JSON.parse(localStorage.getItem('db_arsip_kpds')) || [];
     let currentMode = 'arsip';
     let editIndex = null;
@@ -540,6 +549,7 @@ function updateClock() {
         document.getElementById('regOnly').classList.toggle('hidden', mode === 'arsip' || mode === 'agenda');
         resetForm();
         renderTable();
+        setAutoNumber();
     }
 
     function updateSub() {
@@ -597,50 +607,69 @@ function generatePreview() {
         reader.readAsDataURL(file);
     };
 
-    // Pastikan bagian ini diubah di dalam <script> HTML Anda
-document.getElementById('formArsip').onsubmit = async (e) => {
+  document.getElementById('formArsip').onsubmit = async (e) => {
     e.preventDefault();
+    
+    // 1. Ambil Element & Data Input
     const btn = document.getElementById('btnSimpan');
     const progContainer = document.getElementById('progressContainer');
     const progBar = document.getElementById('progressBar');
     const progText = document.getElementById('progressText');
     
-    // Validasi Awal
-    if (!document.getElementById('arsipNama').value) return alert("Perihal harus diisi!");
+    const isRahasia = document.getElementById('isRahasia').checked;
+    const pass1 = document.getElementById('filePass').value;
+    const pass2 = document.getElementById('confirmPass').value;
+    const namaDokumen = document.getElementById('arsipNama').value;
 
+    // 2. Validasi Awal & Validasi Password
+    if (!namaDokumen) return alert("Perihal harus diisi!");
+    if (isRahasia) {
+        if (!pass1) return alert("Password wajib diisi untuk dokumen penting!");
+        if (pass1 !== pass2) return alert("Konfirmasi password tidak cocok!");
+    }
+
+    // 3. Persiapan UI (Loading)
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
-    
-    // MUNCULKAN BAR PROSES
     progContainer.classList.remove('hidden');
     progBar.style.width = '0%';
-    progText.innerText = "UPLOADING: 0%";
+    progText.innerText = "MENYIAPKAN KEAMANAN...";
 
+    // 4. Proses Hashing SHA-256 (Dijalankan sebelum upload)
+    let secureHash = "";
+    if (isRahasia) {
+        secureHash = await hashPassword(pass1); // Fungsi hash yang kita buat sebelumnya
+    }
+
+    // 5. Susun Payload
     const payload = {
-        token: "2026", // PIN murni
+        token: "2026", 
         action: editIndex !== null ? "update" : "upload",
         mode: currentMode,
         no: generatePreview(),
-        nama: document.getElementById('arsipNama').value.toUpperCase(),
+        nama: namaDokumen.toUpperCase(),
         klaster: document.getElementById('selKlaster').value,
         sub: document.getElementById('selSub').value,
         jenisSurat: document.getElementById('selJenisSurat').value,
         tgl: document.getElementById('arsipTgl').value,
         asal: document.getElementById('inpAsal').value,
         tujuan: document.getElementById('inpTujuan').value,
+        isRahasia: isRahasia, // Kirim status rahasia ke backend
+        pass: secureHash,     // Kirim Hash (Bukan teks asli)
         fileData: fileData ? fileData.base64 : null 
     };
 
-    // LOGIKA ANIMASI BAR PROSES (Dibuat Manual karena Fetch tidak mendukung progress upload murni)
+    // 6. Animasi Progress Bar (Manual Simulation)
     let p = 0;
     const interval = setInterval(() => {
-        if (p < 90) { // Berhenti di 90% sampai ada respon dari server
+        if (p < 90) {
             p += (90 - p) * 0.1;
             progBar.style.width = p + '%';
             progText.innerText = `UPLOADING: ${Math.round(p)}%`;
         }
     }, 200);
 
+    // 7. Eksekusi Kirim ke GAS
     try {
         const resp = await fetch(GAS_URL, { 
             method: "POST", 
@@ -650,14 +679,14 @@ document.getElementById('formArsip').onsubmit = async (e) => {
         const res = await resp.json();
 
         if (res.status === "success") {
-            clearInterval(interval); // Hentikan animasi
-            progBar.style.width = '100%'; // Full-kan bar
-            progText.innerText = "SELESAI!";
+            clearInterval(interval);
+            progBar.style.width = '100%';
+            progText.innerText = "BERHASIL DISIMPAN!";
             
             setTimeout(() => {
-                alert("✅ Berhasil Disimpan!");
-                resetForm();
-                syncFromGAS();
+                alert("✅ Data Berhasil Diarsipkan!");
+                resetForm(); // Pastikan fungsi ini membersihkan input password juga
+                if (typeof syncFromGAS === 'function') syncFromGAS();
             }, 500);
         } else {
             throw new Error(res.msg);
@@ -681,6 +710,7 @@ document.getElementById('formArsip').onsubmit = async (e) => {
             database = data.database || [];
             localStorage.setItem('db_arsip_kpds', JSON.stringify(database));
             renderTable();
+            setAutoNumber();
         } catch(e) { console.error(e); } 
         finally { syncIcon.classList.remove('fa-spin'); }
     }
@@ -766,32 +796,58 @@ document.getElementById('formArsip').onsubmit = async (e) => {
 }
 
 /**
- * FUNGSI PREVIEW DENGAN PROTEKSI & WATERMARK
+ * FUNGSI PREVIEW DENGAN PROTEKSI PASSWORD SHA-256
  */
-function openPreview(link, namaDokumen = "") {
-    if(!link || link === 'undefined' || link === '') return alert("File tidak ditemukan!");
+async function openPreview(index) {
+    // 1. Ambil data berdasarkan index dari array database
+    const item = database[index];
+    if (!item || !item.link) {
+        alert("File tidak ditemukan!");
+        return;
+    }
 
-    const namaUpper = namaDokumen.toUpperCase();
+    const namaUpper = item.nama.toUpperCase();
+    // Konversi link Google Drive agar bisa tampil di Iframe
+    const linkPreview = item.link.replace('/view', '/preview');
 
-    // 1. Proteksi Dokumen Keuangan/Sensitif
-    if (namaUpper.includes("KEUANGAN") || namaUpper.includes("GAJI") || namaUpper.includes("DANA")) {
-        const pin = prompt("⚠️ DOKUMEN SENSITIF!\nMasukkan PIN Verifikasi untuk melihat:");
-        if (btoa(pin) !== PIN_HASH) { // PIN_HASH adalah "MjAyNg=="
-            alert("Akses Ditolak! PIN Salah.");
+    // 2. LOGIKA KEAMANAN (Password)
+    // Cek apakah isRahasia true (mendukung format boolean atau string dari GAS)
+    const statusRahasia = item.isRahasia === true || item.isRahasia === "true";
+    
+    if (statusRahasia) {
+        const inputUser = prompt("🔐 DOKUMEN INI DIPROTEKSI!\nMasukkan password dokumen:");
+        
+        if (inputUser === null) return; // Batal jika user menekan 'Cancel'
+
+        const hashedInput = await hashPassword(inputUser);
+
+        if (hashedInput !== item.pass) {
+            alert("🚫 Password Salah! Akses ditolak.");
             return;
         }
     }
 
-    // 2. Update Teks Watermark
+    // 3. UPDATE TAMPILAN (Watermark & Judul)
     const wm = document.querySelector('.watermark-overlay');
     if (wm) {
-        wm.innerText = namaUpper.includes("KEUANGAN") ? "RAHASIA NEGARA" : "PKM KIARAPEDES";
+        wm.innerText = statusRahasia ? "DOKUMEN PENTING" : "PKM KIARAPEDES";
+        wm.style.color = statusRahasia ? "rgba(220, 38, 38, 0.1)" : "rgba(15, 23, 42, 0.05)";
     }
 
-    // 3. Tampilkan Dokumen
+    const titleEl = document.getElementById('previewTitle');
+    if (titleEl) titleEl.innerText = "PREVIEW: " + namaUpper;
+
+    // 4. LOAD KE IFRAME
     const frame = document.getElementById('previewFrame');
-    frame.src = link.replace('/view', '/preview');
-    document.getElementById('modalPreview').classList.remove('hidden');
+    const modal = document.getElementById('modalPreview');
+    
+    if (frame && modal) {
+        frame.src = "about:blank"; // Reset frame agar tidak menampilkan file sebelumnya
+        setTimeout(() => {
+            frame.src = linkPreview;
+            modal.classList.remove('hidden');
+        }, 100);
+    }
 }
 		
     function cetakBarcode(i) {
@@ -840,6 +896,7 @@ function openPreview(link, namaDokumen = "") {
         document.getElementById('btnBatal').classList.add('hidden');
         document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
         document.getElementById('progressContainer').classList.add('hidden');
+        setAutoNumber();
     }
 
     function togglePedoman() {
@@ -909,8 +966,125 @@ function openPreview(link, namaDokumen = "") {
         XLSX.writeFile(wb, `E-Arsip_${new Date().toLocaleDateString()}.xlsx`);
     }
 
-    window.onload = () => {
-        if(sessionStorage.getItem('arsip_session_pin')) {
+    function setAutoNumber() {
+    // 1. Ambil kriteria saat ini dari form
+    const currentKlaster = document.getElementById('selKlaster').value;
+    const currentJenis = document.getElementById('selJenisSurat').value;
+    
+    // 2. Tentukan Tahun Acuan (dari input tanggal, jika kosong pakai tahun hari ini)
+    const tglInput = document.getElementById('arsipTgl').value;
+    const tahunAcuan = tglInput ? new Date(tglInput).getFullYear() : new Date().getFullYear();
+
+    // 3. Filter database untuk mencari nomor terakhir yang relevan
+    const dataTerfilter = database.filter(x => {
+        const matchMode = (x.mode || 'arsip') === currentMode;
+        
+        // Parsing tahun dari bagian terakhir nomor (misal: .../2026)
+        const parts = x.no.split('/');
+        const tahunDokumen = parseInt(parts[parts.length - 1], 10);
+
+        if (currentMode === 'arsip') {
+            // Filter Arsip: Mode + Klaster + Jenis + Tahun harus cocok
+            return matchMode && 
+                   x.klaster === currentKlaster && 
+                   x.jenis === currentJenis && 
+                   tahunDokumen === tahunAcuan;
+        } else {
+            // Filter Surat Masuk/Keluar: Mode + Tahun harus cocok
+            return matchMode && tahunDokumen === tahunAcuan;
+        }
+    });
+
+    // 4. Cari angka urut tertinggi (indeks ke-1 pada format: KODE/NO/...)
+    const maxNo = dataTerfilter.reduce((max, item) => {
+        const parts = item.no.split('/');
+        if (parts.length > 1) {
+            const num = parseInt(parts[1], 10);
+            return !isNaN(num) ? Math.max(max, num) : max;
+        }
+        return max;
+    }, 0);
+
+    // 5. Set nomor berikutnya ke input
+    const nextNo = maxNo + 1;
+    document.getElementById('noUrut').value = nextNo;
+    
+    // 6. Update tampilan teks preview nomor
+    generatePreview();
+}
+
+// Pemicu update nomor urut otomatis
+document.getElementById('selKlaster').addEventListener('change', setAutoNumber);
+document.getElementById('selJenisSurat').addEventListener('change', setAutoNumber);
+
+async function hashPassword(string) {
+    if (!string) return "";
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// --- OPTIMASI UX: TOGGLE LIHAT PASSWORD ---
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    const icon = document.getElementById('eye-' + id);
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+async function hashPassword(string) {
+    if (!string) return "";
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function togglePassField() {
+    const isChecked = document.getElementById('isRahasia').checked;
+    const container = document.getElementById('passContainer');
+    
+    if (isChecked) {
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+        // Opsional: Kosongkan input jika tidak jadi rahasia
+        document.getElementById('filePass').value = '';
+        document.getElementById('confirmPass').value = '';
+    }
+}
+
+function togglePasswordView(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+
+    if (passwordInput && icon) {
+        if (passwordInput.type === "password") {
+            // Ubah jadi teks (terlihat)
+            passwordInput.type = "text";
+            // Ganti ikon jadi mata dicoret
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            // Ubah jadi password (tersembunyi)
+            passwordInput.type = "password";
+            // Ganti ikon jadi mata terbuka
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    } else {
+        console.error("Elemen dengan ID " + inputId + " atau " + iconId + " tidak ditemukan!");
+    }
+}
+
+window.onload = () => {
+        if (localStorage.getItem('pkm_session_status') === 'AUTHORIZED') {
             document.getElementById('modalLogin').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
             initApp();
