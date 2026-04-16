@@ -189,7 +189,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 4rem;
+    font-size: 3rem;
     font-weight: 900;
     z-index: 50; /* Di atas iframe */
     pointer-events: none; /* KRUSIAL: Agar klik tetap bisa tembus ke dokumen di bawahnya */
@@ -289,8 +289,8 @@
 </div>
 
 <div id="modalPreview" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col relative">
-        <div class="watermark-overlay">PKM KIARAPEDES</div>
+    <div class="bg-white dark:bg-slate-900 w-full max-w-2xl h-[90vh] rounded-3xl overflow-hidden flex flex-col relative">
+        <div class="watermark-overlay">DOKUMEN PKM KIARAPEDES</div>
         <div class="p-4 border-b flex justify-between items-center bg-white dark:bg-slate-900 z-10">
             <h3 id="previewTitle" class="font-bold dark:text-white text-sm md:text-base">Pratinjau Dokumen</h3>
             <button onclick="closePreview()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-100 text-slate-500 hover:text-red-500 transition-all">
@@ -1079,7 +1079,7 @@ async function openPreview(index) {
 
     if (statusRahasia) {
         console.log("Dokumen Terkunci. Menunggu Password...");
-        const inputUser = prompt("🔐 DOKUMEN SANGAT RAHASIA!\nMasukkan password untuk membuka:");
+        const inputUser = prompt("🔐 DOKUMEN RAHASIA!\nMasukkan password untuk membuka:");
         
         if (inputUser === null) return; // Klik batal, berhenti total
 
@@ -1095,12 +1095,12 @@ async function openPreview(index) {
     if (wm) {
         wm.style.display = "block";
         if (statusRahasia) {
-            wm.innerText = "DOKUMEN RAHASIA";
-            wm.style.color = "#dc2626"; // Merah tegas (Hex lebih stabil dari RGBA)
+            wm.innerText = "DOKUMEN RAHASIA\n\n\nPKM KIARAPEDES";
+            wm.style.color = "#ff0000"; // Merah tegas (Hex lebih stabil dari RGBA)
             wm.style.fontWeight = "900"; // Paksa tebal
         } else {
-            wm.innerText = "PKM KIARAPEDES";
-            wm.style.color = "#0f172a"; // Biru gelap tegas
+            wm.innerText = "DOKUMEN\n\n\nPKM KIARAPEDES";
+            wm.style.color = "#0000ff"; // Biru gelap tegas
             wm.style.fontWeight = "900";
         }
     }
