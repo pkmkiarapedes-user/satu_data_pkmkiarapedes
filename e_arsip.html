@@ -291,9 +291,8 @@
 <div id="modalPreview" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-sm">
     <div class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col relative">
         <div class="watermark-overlay">PKM KIARAPEDES</div>
-        
         <div class="p-4 border-b flex justify-between items-center bg-white dark:bg-slate-900 z-10">
-            <h3 class="font-bold dark:text-white text-sm md:text-base">Pratinjau Dokumen</h3>
+            <h3 id="previewTitle" class="font-bold dark:text-white text-sm md:text-base">Pratinjau Dokumen</h3>
             <button onclick="closePreview()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-100 text-slate-500 hover:text-red-500 transition-all">
                 <i class="fas fa-times"></i>
             </button>
@@ -350,8 +349,8 @@
 
                     <div class="space-y-2 border-l-4 border-emerald-600 pl-4 bg-emerald-50 p-3 rounded-lg mb-4">
                 <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="isRahasia" class="w-4 h-4 text-emerald-600" onchange="togglePassField()">
-         <span class="text-sm font-bold text-emerald-800 uppercase">"CENTANG" apabila dokumen diberi Password</span></label>
+              <input type="checkbox" id="isRahasia" class="w-4 h-4 text-rose-600" onchange="togglePassField()">
+         <span class="text-sm font-bold text-rose-500 uppercase">Password Dokumen</span></label>
         </div>
 
 <div id="passContainer" class="hidden space-y-3 animate-fade-in mb-4">
@@ -369,7 +368,7 @@
         </button>
         <p id="passError" class="text-[10px] text-rose-500 hidden mt-1 font-bold">* Password tidak cocok!</p>
     </div>
-    <p class="text-[10px] text-slate-500 italic">* Dokumen ini hanya bisa dibuka dengan password yang anda buat</p>
+    <p class="text-[11px] text-red-500 italic">* Dokumen ini hanya bisa dibuka dengan password yang anda buat<span> *password minimal 5 karakter*</span></p>
 </div>
 
 						<div id="progressContainer" class="hidden w-full bg-blue-50 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden border border-blue-100 dark:border-blue-900">
@@ -422,14 +421,6 @@
     </main>
 </div>
 
-<div id="modalPreview" class="fixed inset-0 bg-black/90 z-[10000] hidden flex flex-col p-4 backdrop-blur-md">
-    <div class="flex justify-between items-center mb-4 text-white">
-        <h3 id="previewTitle" class="font-bold text-xs truncate uppercase tracking-widest">Preview Dokumen</h3>
-        <button onclick="closePreview()" class="w-10 h-10 bg-rose-800 rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-times"></i></button>
-    </div>
-    <iframe id="previewFrame" class="w-full flex-1 bg-white rounded-2xl"></iframe>
-</div>
-
 <div id="modalPedoman" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center p-4 backdrop-blur-md">
     <div class="card-custom max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col border-none">
         <div class="p-6 border-b flex justify-between items-center bg-emerald-600 text-white" style="border-color: var(--input-border)">
@@ -441,7 +432,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxaloavvGjSNyyH8vJkNGzig0KakDeu5Zmr-nGasSl4YU-MkcQnB0M4K5ReC7wxMbSD2g/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwYWYAe30HVFmTxjPymyBfuC11MZfUVBAPWH6VCfpIGEH6gtDnB34YI1320vt6MpziHkA/exec";
     const PIN_HASH = "MjAyNg=="; 
     let database = JSON.parse(localStorage.getItem('db_arsip_kpds')) || [];
     let currentMode = 'arsip';
@@ -606,66 +597,78 @@ function generatePreview() {
   document.getElementById('formArsip').onsubmit = async (e) => {
     e.preventDefault();
     
-    // 1. Ambil Element & Data Input
+    // 1. Ambil Elemen UI (Mempertahankan fitur Progress Bar)
     const btn = document.getElementById('btnSimpan');
     const progContainer = document.getElementById('progressContainer');
     const progBar = document.getElementById('progressBar');
     const progText = document.getElementById('progressText');
     
+    // 2. Ambil Data Input & Fitur Password
     const isRahasia = document.getElementById('isRahasia').checked;
     const pass1 = document.getElementById('filePass').value;
     const pass2 = document.getElementById('confirmPass').value;
     const namaDokumen = document.getElementById('arsipNama').value;
 
-    // 2. Validasi Awal & Validasi Password
-    if (!namaDokumen) return alert("Perihal harus diisi!");
     if (isRahasia) {
-        if (!pass1) return alert("Password wajib diisi untuk dokumen penting!");
-        if (pass1 !== pass2) return alert("Konfirmasi password tidak cocok!");
+        // Cek jika kosong
+        if (!pass1) {
+            alert("⚠️ Password wajib diisi jika dokumen Rahasia!");
+            return;
+        }
+        // TAMBAHAN: Cek minimal 5 karakter
+        if (pass1.length < 5) {
+            alert("⚠️ Password minimal harus 5 karakter.");
+            document.getElementById('filePass').focus();
+            return;
+        }
+        // Cek kecocokan
+        if (pass1 !== pass2) {
+            alert("❌ Konfirmasi password tidak cocok!");
+            return;
+        }
     }
-
-    // 3. Persiapan UI (Loading)
+    // 4. Persiapan UI Loading (Fitur Progress Bar yang tetap ada)
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
     progContainer.classList.remove('hidden');
     progBar.style.width = '0%';
-    progText.innerText = "MENYIAPKAN KEAMANAN...";
+    progText.innerText = "MENYIAPKAN DATA...";
 
-    // 4. Proses Hashing SHA-256 (Dijalankan sebelum upload)
+    // 5. Proses Hashing SHA-256
     let secureHash = "";
     if (isRahasia) {
-        secureHash = await hashPassword(pass1); // Fungsi hash yang kita buat sebelumnya
+        secureHash = await hashPassword(pass1);
     }
 
-    // 5. Susun Payload
+    // 6. Susun Payload (Tetap membawa Mode, Klaster, dan Jenis Surat)
     const payload = {
         token: "2026", 
         action: editIndex !== null ? "update" : "upload",
         mode: currentMode,
-        no: generatePreview(),
-        nama: namaDokumen.toUpperCase(),
+        no: generatePreview(), // Fitur Kode Otomatis tetap jalan
+        nama: namaDokumen.toUpperCase(), // Fitur Auto-Kapital tetap jalan
         klaster: document.getElementById('selKlaster').value,
         sub: document.getElementById('selSub').value,
         jenisSurat: document.getElementById('selJenisSurat').value,
         tgl: document.getElementById('arsipTgl').value,
         asal: document.getElementById('inpAsal').value,
         tujuan: document.getElementById('inpTujuan').value,
-        isRahasia: isRahasia,
-        pass: secureHash,
+        isRahasia: isRahasia, // Penanda dokumen dikunci
+        pass: secureHash,      // Hash password yang dikirim ke GAS
         fileData: fileData ? fileData.base64 : null 
     };
 
-    // 6. Animasi Progress Bar (Manual Simulation)
+    // 7. Animasi Progress Bar (Fitur visual tetap dipertahankan)
     let p = 0;
     const interval = setInterval(() => {
         if (p < 90) {
-            p += (90 - p) * 0.1;
+            p += 5;
             progBar.style.width = p + '%';
-            progText.innerText = `UPLOADING: ${Math.round(p)}%`;
+            progText.innerText = `UPLOADING: ${p}%`;
         }
-    }, 200);
+    }, 100);
 
-    // 7. Eksekusi Kirim ke GAS
+    // 8. Eksekusi Kirim ke Google Apps Script
     try {
         const resp = await fetch(GAS_URL, { 
             method: "POST", 
@@ -681,8 +684,8 @@ function generatePreview() {
             
             setTimeout(() => {
                 alert("✅ Data Berhasil Diarsipkan!");
-                resetForm(); // Pastikan fungsi ini membersihkan input password juga
-                if (typeof syncFromGAS === 'function') syncFromGAS();
+                resetForm(); // Memanggil fungsi reset yang sudah diperbaiki
+                syncFromGAS(); // Refresh database otomatis
             }, 500);
         } else {
             throw new Error(res.msg);
@@ -800,22 +803,18 @@ function generatePreview() {
     function editData(i) {
     editIndex = i;
     const d = database[i];
-    currentEditNo = d.no; // Simpan nomor asli untuk referensi backend
-
-    const parts = d.no.split('/');
-    if (parts.length > 1) {
-    const noUrutHanyaAngka = parseInt(parts[1], 10);
-    document.getElementById('noUrut').value = noUrutHanyaAngka;
-    }
-    document.getElementById('selJenisSurat').value = d.jenis || "";
-    document.getElementById('selKlaster').value = d.klaster;
-    updateSub(); // Memastikan dropdown sub-klaster terisi
-    document.getElementById('selSub').value = d.sub;
-    document.getElementById('arsipNama').value = d.nama;
-    document.getElementById('arsipTgl').value = d.tgl;
-    document.getElementById('inpAsal').value = d.asal || "";
-    document.getElementById('inpTujuan').value = d.tujuan || "";
+    currentEditNo = d.no; 
+    const isChecked = d.isRahasia === true || String(d.isRahasia).toLowerCase() === "true";
+    document.getElementById('isRahasia').checked = isChecked;
     
+    if (isChecked) {
+        document.getElementById('passContainer').classList.remove('hidden');
+        // Kosongkan input password saat edit demi keamanan (user harus input ulang jika ingin ganti)
+        document.getElementById('filePass').value = "";
+        document.getElementById('confirmPass').value = "";
+    } else {
+        document.getElementById('passContainer').classList.add('hidden');
+    }
     generatePreview();
     document.getElementById('btnSimpan').innerText = "UPDATE DATA";
     document.getElementById('btnBatal').classList.remove('hidden');
@@ -830,19 +829,50 @@ function generatePreview() {
         } else if(pin) { alert("PIN SALAH!"); }
     }
 
-   	function resetForm() {
+   function resetForm() {
+    // 1. Reset semua input form bawaan HTML
     document.getElementById('formArsip').reset();
-    document.getElementById('passContainer').classList.add('hidden'); // Sembunyikan input password
+    
+    // 2. Reset UI Password
+    const passContainer = document.getElementById('passContainer');
+    if (passContainer) passContainer.classList.add('hidden');
+    
+    document.getElementById('filePass').value = '';
+    document.getElementById('confirmPass').value = '';
+    
+    // Sembunyikan pesan error jika ada
+    const passError = document.getElementById('passError');
+    if (passError) passError.classList.add('hidden');
+    
+    // 3. Kembalikan mode input ke password (masking)
+    document.getElementById('filePass').type = "password";
+    document.getElementById('confirmPass').type = "password";
+    document.getElementById('eye-filePass').className = "fas fa-eye";
+    document.getElementById('eye-confirmPass').className = "fas fa-eye";
+    
+    // 4. Reset State Global
     editIndex = null; 
-	currentEditNo = null; 
-	fileData = null;
+    currentEditNo = null; 
+    fileData = null;
+    
+    // 5. Reset Tombol & Visual
     document.getElementById('btnSimpan').innerText = "SIMPAN & ARSIPKAN";
     document.getElementById('btnBatal').classList.add('hidden');
-    document.getElementById('labelFile').innerText = "UPLOAD PDF (MAX 2MB)";
-    document.getElementById('progressContainer').classList.add('hidden');
+    
+    // Reset Label Upload
+    document.getElementById('labelFile').innerHTML = `
+        <i class="fas fa-cloud-arrow-up text-xl text-emerald-500 mb-1"></i>
+        <span class="text-[10px] font-bold uppercase">Upload PDF (Max 2MB)</span>
+    `;
+    
+    // 6. Reset Progress Bar
+    const progContainer = document.getElementById('progressContainer');
+    if (progContainer) progContainer.classList.add('hidden');
+    document.getElementById('progressBar').style.width = '0%';
+    
+    // 7. Generate ulang nomor surat baru
     setAutoNumber();
-    }
-
+}
     function togglePedoman() {
     const m = document.getElementById('modalPedoman');
     if(m.classList.contains('hidden')) {
@@ -1030,7 +1060,7 @@ async function openPreview(index) {
     // Pastikan pengecekan mencakup berbagai kemungkinan format data dari Sheets
     const statusRahasia = item.isRahasia === true || 
                          String(item.isRahasia).toLowerCase() === "true" || 
-                         (item.pass && item.pass.length > 10);
+                         (item.pass && item.pass.length > 4);
 
     if (statusRahasia) {
         console.log("Dokumen Terkunci. Menunggu Password...");
