@@ -1104,15 +1104,6 @@ async function openPreview(index) {
     }, 150);
 }
 
-async function hashPassword(string) {
-    if (!string) return "";
-    const utf8 = new TextEncoder().encode(string);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-
 function closePreview() {
     document.getElementById('modalPreview').classList.add('hidden');
     document.getElementById('previewFrame').src = "";
