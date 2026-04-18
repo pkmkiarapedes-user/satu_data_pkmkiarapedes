@@ -2,17 +2,16 @@
 <html lang="id">
 	<script>
     (function() {
-        // Cek secara instan untuk mencegah layar "berkedip"
         const session = localStorage.getItem('pkm_session_status');
-        if (session === 'AUTHORIZED') {
-            // Kita gunakan CSS inject agar form login langsung hilang sebelum render
-            const style = document.createElement('style');
-            style.innerHTML = '#loginSection { display: none !important; } #hubSection { display: block !important; }';
-            document.head.appendChild(style);
+        const sessionTime = localStorage.getItem('pkm_session_time');
+        const now = new Date().getTime();
+        const expiry = 4 * 60 * 60 * 1000;
+        if (session === 'AUTHORIZED' && sessionTime && (now - sessionTime < expiry)) {
+        document.documentElement.classList.add('is-authorized');
         }
     })();
 </script>
-	
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +37,26 @@
         #docSidebar { transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); z-index: 100; transform: translateX(100%); }
         .sidebar-open { transform: translateX(0) !important; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        
+        /* Pastikan hubSection sudah siap di memori tapi tetap tersembunyi */
+        #hubSection.hidden {
+        display: none;
+        }
+
+        /* Transisi halus untuk perpindahan section */
+        #loginSection, #hubSection {
+        backface-visibility: hidden;
+        perspective: 1000px;
+        transform: translateZ(0); /* Memicu GPU */
+        }
+
+        /* Sembunyikan login secara default jika authorized */
+        .is-authorized #loginSection { display: none !important; }
+        .is-authorized #hubSection { display: block !important; }
+    
+         /* Animasi halus untuk kartu agar tidak kaku saat muncul cepat */
+        .stagger-in { opacity: 0; transform: translateY(10px); transition: all 0.4s ease; }
+        .is-authorized .stagger-in { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -46,9 +65,9 @@
     <div id="loginSection" class="flex items-center justify-center min-h-screen p-6 transition-all duration-700">
         <div class="glass-panel w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-white/10">
             <div class="flex flex-col items-center mb-8">
-                <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20 rotate-6">
-                    <i class="fas fa-fingerprint text-3xl text-slate-900"></i>
-                </div>
+                <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20 rotate-6 border border-cyan/100">
+                <i id="loginIcon" class="fas fa-fingerprint text-3xl text-black animate-bounce"></i>
+                    </div>
                 <h1 class="text-xl font-black tracking-widest uppercase">Akses <span class="text-emerald-500">Satu Data</span></h1>
                 <p class="text-[14px] text-slate-500 font-bold tracking-widest mt-2 uppercase">Puskesmas Kiarapedes</p>
             </div>
@@ -57,7 +76,7 @@
                 <input type="text" id="user" onkeydown="if(event.key === 'Enter') document.getElementById('pass').focus()" class="w-full bg-slate-900/50 border border-white/5 p-4 rounded-xl text-sm focus:border-emerald-500 transition-all outline-none mono text-white" placeholder="Nama Pengguna">
                 <input type="password" id="pass" onkeydown="if(event.key === 'Enter') auth()" class="w-full bg-slate-900/50 border border-white/5 p-4 rounded-xl text-sm focus:border-emerald-500 transition-all outline-none mono text-white" placeholder="Kata Sandi">
                 <button onclick="auth()" id="authBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] mt-4 shadow-xl transition-all active:scale-95">
-                    Verifikasi Akses
+            Akses
                 </button>
             </div>
         </div>
@@ -99,24 +118,24 @@
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase text-emerald-500">Analisis Data</h3><span class="text-xl text-emerald-600">Manajemen Data dan Informasi</span>
             <p class="text-xs text-slate-500 leading-relaxed mb-6">Sinkronisasi data ASIK vs E-Puskesmas dan mapping tren penyakit.</p>
         </div>
-        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-emerald-500 uppercase tracking-widest">Akses Sistem <i class="fas fa-check-double"></i></div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-emerald-500 uppercase tracking-widest">Buka Sistem <i class="fas fa-angle-double-right text-xs"></i></div>
     </a>
             
     <a href="e_arsip.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-blue-500/10">
 	     <div>
             <div class="flex justify-between items-start mb-6">
-                <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all"><i class="fas fa-users-viewfinder text-xl"></i></div>
+                <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all"><i class="fas fa-archive text-xl"></i></div>
             </div>
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Arsip Digital</h3><span class="text-xl text-blue-600">Manajemen Arsip</span>
             <p class="text-xs text-slate-500 leading-relaxed mb-6">Pusat digitalisasi surat, regulasi, dan dokumen akreditasi puskesmas</p>
         </div>
-        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-blue-500 uppercase tracking-widest">Buka Sistem <i class="fas fa-edit"></i></div>
+        <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-blue-500 uppercase tracking-widest">Buka Sistem <i class="fas fa-angle-double-right text-xs"></i></div>
     </a>
 
-    <a href="p.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-purple-500/10">
+    <a href="****" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-purple-500/10">
         <div>
             <div class="flex justify-between items-start mb-6">
-                <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-all"><i class="fas fa-folder-open text-xl"></i></div>
+                <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-all"><i class="fas fa-lock text-xl"></i></div>
                 <span class="text-[8px] font-black opacity-30 tracking-widest uppercase text-white"></span>
             </div>
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-purple-600">Modul Tambahan... </span>
@@ -125,10 +144,10 @@
         <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-purple-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
     </a>
     
-    <a href="sip.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-amber-500/10">
+    <a href="****" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-amber-500/10">
         <div>
             <div class="flex justify-between items-start mb-6">
-                <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all"><i class="fas fa-boxes-stacked text-xl"></i></div>
+                <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all"><i class="fas fa-lock text-xl"></i></div>
             </div>
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-amber-600">Modul Tambahan... </span>
             <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes</p>
@@ -136,10 +155,10 @@
         <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-amber-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
     </a>
 
-    <a href="e_arsip.js" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-cyan-500/10">
+    <a href="****" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-cyan-500/10">
         <div>
             <div class="flex justify-between items-start mb-6">
-                <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-white transition-all"><i class="fas fa-face-smile text-xl"></i></div>
+                <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-white transition-all"><i class="fas fa-lock text-xl"></i></div>
             </div>
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-cyan-600">Modul Tambahan... </span>
             <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes</p>
@@ -147,10 +166,10 @@
         <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-black text-cyan-500 uppercase tracking-widest">Coming Soon... <i class="fas fa-lock"></i></div>
     </a>
 
-    <a href="antrean.html" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-rose-500/10">
+    <a href="****" class="app-card glass-panel p-8 rounded-[2rem] group border-t-2 border-rose-500/10">
         <div>
             <div class="flex justify-between items-start mb-6">
-                <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-all"><i class="fas fa-clock-rotate-left text-xl"></i></div>
+                <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-all"><i class="fas fa-lock text-xl"></i></div>
             </div>
             <h3 class="text-lg font-bold mb-2 text-white italic tracking-tight uppercase">Next App</h3><span class="text-xl text-rose-600">Modul Tambahan... </span>
             <p class="text-xs text-slate-500 leading-relaxed mb-6">Aplikasi penunjang kinerja puskesmas kiarapedes.</p>
@@ -202,60 +221,82 @@
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxaloavvGjSNyyH8vJkNGzig0KakDeu5Zmr-nGasSl4YU-MkcQnB0M4K5ReC7wxMbSD2g/exec";
 
-    async function auth() {
+   async function auth() {
     const user = document.getElementById('user').value.trim();
     const pass = document.getElementById('pass').value;
     const btn = document.getElementById('authBtn');
 
-    if (!user || !pass) {
-        alert("⚠️ Username dan PIN wajib diisi!");
-        return;
-    }
+    if (!user || !pass) return;
 
+    // 1. Visual Langsung: Berikan feedback instan di tombol
     btn.disabled = true;
-    btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Memverifikasi...`;
+    btn.innerHTML = `<i class="fas fa-sync-alt animate-spin"></i> Verifikasi...`; // Icon simpel lebih ringan
 
     try {
+        // 2. Tambahkan mode 'no-cors' jika hanya mengirim data, 
+        // tapi karena kita butuh JSON response, pastikan header minimal.
         const response = await fetch(GAS_URL, {
             method: "POST",
+            mode: "cors", // Pastikan CORS aktif
+            headers: { "Content-Type": "text/plain;charset=utf-8" }, // Lebih cepat diproses GAS
             body: JSON.stringify({ action: "login", token: pass, user: user })
         });
 
         const result = await response.json();
 
         if (result.status === "success") {
-            // SIMPAN DATA LOGIN
+            // 3. Simpan data secepat kilat
             localStorage.setItem('pkm_session_status', 'AUTHORIZED');
-            localStorage.setItem('pkm_session_user', user);
-            localStorage.setItem('pkm_session_time', new Date().getTime()); // <--- PENTING: Tambahkan ini
+            localStorage.setItem('pkm_session_time', new Date().getTime());
             
+            // 4. TRANSISI INSTAN: Jangan pakai setTimeout lama
+            document.documentElement.classList.add('is-authorized');
             showHub(); 
         } else {
-            alert("❌ Akses Ditolak: " + result.msg);
+            alert("❌ Kata Sandi Salah");
+            btn.disabled = false;
+            btn.innerHTML = "Verifikasi";
         }
     } catch (error) {
-        alert("⚠️ Gagal terhubung ke Server Cloud.");
-    } finally {
+        console.error(error);
         btn.disabled = false;
-        btn.innerHTML = "Verifikasi Akses";
+        btn.innerHTML = "Verifikasi";
     }
 }
+
     // 3. FUNGSI UI (MENAMPILKAN HUB)
     function showHub() {
-        const login = document.getElementById('loginSection');
-        const hub = document.getElementById('hubSection');
-        
-        login.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => {
-            login.classList.add('hidden');
-            hub.classList.remove('hidden');
-            // Memicu ulang animasi stagger
-            const items = hub.querySelectorAll('.stagger-in');
-            items.forEach((item, index) => {
-            item.style.animationDelay = (index * 0.1) + 's';
-            });
-        }, 500);
+    const login = document.getElementById('loginSection');
+    const hub = document.getElementById('hubSection');
+    
+    if (icon) {
+        icon.classList.remove('animate-bounce');
     }
+    // 1. Tambahkan class ke documentElement untuk kontrol CSS global (instan)
+    document.documentElement.classList.add('is-authorized');
+
+    // 2. Langsung hilangkan login dan munculkan hub tanpa menunggu timeout
+    login.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    
+    // Gunakan requestAnimationFrame agar browser memproses perubahan layout lebih cepat
+    requestAnimationFrame(() => {
+        login.classList.add('hidden');
+        hub.classList.remove('hidden');
+        
+        // 3. Animasi kartu menu (stagger) dibuat sangat singkat
+        const items = hub.querySelectorAll('.app-card');
+        items.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                item.style.transition = 'all 0.3s ease-out';
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, index * 30); // Jeda antar kartu hanya 30ms
+        });
+    });
+}
 
     // 4. FUNGSI LOGOUT
     function logout() {
@@ -276,6 +317,12 @@
     const sessionTime = localStorage.getItem('pkm_session_time');
     const now = new Date().getTime();
     const expiry = 4 * 60 * 60 * 1000; // 4 Jam
+
+    const icon = document.getElementById('loginIcon');
+    
+    setTimeout(() => {
+        if (icon) icon.classList.remove('animate-bounce');
+    }, 2000);
 
     if (session === 'AUTHORIZED') {
         // Jika ada waktu sesi, cek apakah sudah basi
