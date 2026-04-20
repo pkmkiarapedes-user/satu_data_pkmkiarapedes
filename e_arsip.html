@@ -199,6 +199,43 @@
     opacity: 0.15;
     white-space: nowrap;
 }
+
+/* Sidebar Mobile */
+@media (max-width: 1024px) { 
+    #sidebar { 
+        position: fixed; 
+        height: 100vh; 
+        left: 0;
+        top: 0;
+        z-index: 100; /* Pastikan di atas segalanya */
+    } 
+    #sidebar.closed { 
+        width: 0; 
+        transform: translateX(-100%); /* Benar-benar sembunyi saat tertutup */
+    }
+    #mainContent {
+        margin-left: 0 !important;
+    }
+}
+
+/* Tombol Menu Mobile agar tidak menumpuk */
+.mobile-menu-btn {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: #10b981;
+        color: white;
+        border-radius: 12px;
+        margin-right: 10px;
+    }
+}
 </style>
 	
 </head>
