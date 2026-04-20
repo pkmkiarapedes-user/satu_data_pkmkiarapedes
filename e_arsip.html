@@ -244,10 +244,16 @@
 </aside>
 
 <div id="mainContent" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
-    <header class="h-12 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-6 shrink-0">
+   <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-4 shrink-0">
+    <div class="flex items-center">
+        <button onclick="document.getElementById('sidebar').classList.toggle('closed')" class="mobile-menu-btn md:hidden">
+            <i class="fas fa-bars"></i>
+        </button>
         <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
-        <div id="clock" class="text-[9px] font-mono font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">--:--:--</div>
-    </header>
+    </div>
+    <div id="clock" class="hidden sm:block">
+        </div>
+</header>
 
     <main class="flex-1 overflow-y-auto px-4 pt-2 pb-6 custom-scrollbar">
        <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-5 gap-1 mb-1">
@@ -895,49 +901,65 @@ function generatePreview() {
         let h = `
         <div class="col-span-full mb-6 bg-emerald-50 dark:bg-slate-800 p-6 rounded-3xl border-2 border-dashed border-emerald-200 dark:border-emerald-800">
             <h3 class="text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm mb-4 flex items-center gap-2">
-                <i class="fas fa-info-circle"></i> Panduan Operasional Sistem
+                <i class="fas fa-info-circle"></i> Panduan Operasional Sistem E-Arsip
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px] leading-relaxed">
                 <div>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">A. AKSES & KEAMANAN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Gunakan PIN <b>2026</b> untuk masuk.</li>
-                        <li>Klik <b>Sinkronisasi </b> setiap kali membuka aplikasi untuk data terbaru.</li>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1 uppercase text-[10px]">A. Akses & Keamanan</p>
+                    <ul class="list-disc ml-4 text-slate-500 space-y-1">
+                        <li>Gunakan PIN <b>2026</b> untuk masuk ke dasbor.</li>
+                        <li><b>Password Dokumen:</b> Aktifkan opsi "Password Dokumen" untuk file sensitif. Dokumen hanya bisa dibuka dengan kata sandi tersebut.</li>
+                        <li>Klik <b>Sinkronisasi</b> setiap kali membuka aplikasi untuk memuat data terbaru dari server.</li>
                     </ul>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">B. INPUT DOKUMEN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Pilih Klaster & Sub untuk kode otomatis.</li>
-                        <li>Perihal minimal 5 karakter & gunakan huruf KAPITAL.</li>
-                        <li>File PDF maksimal <b>2MB</b>.</li>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-4 mb-1 uppercase text-[10px]">B. Input & Penomoran</p>
+                    <ul class="list-disc ml-4 text-slate-500 space-y-1">
+                        <li>Pilih <b>Klaster & Sub-Klaster</b> untuk mendapatkan kode klasifikasi otomatis (Perbup No. 135/2023).</li>
+                        <li>Sistem otomatis mendeteksi <b>Nomor Urut</b> terakhir agar tidak terjadi nomor ganda.</li>
+                        <li>Gunakan <b>HURUF KAPITAL</b> pada kolom Perihal untuk kerapian data.</li>
                     </ul>
                 </div>
                 <div>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1">C. PENCARIAN & MANAJEMEN</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Filter Klaster untuk menyaring data per bidang.</li>
-                        <li><b>Export Excel</b> akan mengunduh data sesuai hasil pencarian/filter Anda.</li>
-                        <li>Gunakan ikon <b>QR</b> untuk mencetak label fisik map.</li>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mb-1 uppercase text-[10px]">C. Fitur Output & Laporan</p>
+                    <ul class="list-disc ml-4 text-slate-500 space-y-1">
+                        <li><b>QR Code:</b> Gunakan ikon QR untuk mencetak label fisik yang bisa ditempel pada map arsip.</li>
+                        <li><b>Watermark:</b> Preview dokumen dilengkapi watermark otomatis untuk menjaga keaslian.</li>
+                        <li><b>Export Excel:</b> Mengunduh seluruh database sesuai dengan filter pencarian Anda.</li>
                     </ul>
-                    <p class="font-black text-slate-700 dark:text-slate-200 mt-3 mb-1">D. KOREKSI DATA</p>
-                    <ul class="list-disc ml-4 text-slate-500">
-                        <li>Klik <b>Pensil</b> untuk edit, klik <b>Sampah</b> untuk hapus.</li>
-                        <li>Penghapusan memerlukan verifikasi PIN kembali.</li>
+                    <p class="font-black text-slate-700 dark:text-slate-200 mt-4 mb-1 uppercase text-[10px]">D. Koreksi & Penghapusan</p>
+                    <ul class="list-disc ml-4 text-slate-500 space-y-1">
+                        <li>Klik ikon <b>Pensil</b> untuk mengedit data atau memperbarui file PDF.</li>
+                        <li>Klik ikon <b>Sampah</b> untuk menghapus. Penghapusan memerlukan verifikasi PIN ulang.</li>
+                        <li>Pastikan ukuran file PDF tidak melebihi <b>2MB</b>.</li>
                     </ul>
                 </div>
             </div>
         </div>
-		<div class="col-span-full mb-2">
-            <h3 class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] mb-4">Daftar Kode Klasifikasi (Perbup No 135 Th 2023)</h3>
+
+        <div class="col-span-full mb-2">
+            <h3 class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] mb-4">Referensi Kode Klasifikasi (Perbup No 135 Th 2023)</h3>
         </div>
         `;
-            Object.keys(KLASTER).forEach(k => {
-                const s = CLUSTER_STYLES[k];
-                h += `<div class="p-4 ${s.bg} rounded-2xl border border-slate-100"><div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}"><i class="fas ${s.icon}"></i> ${k}</div><div class="flex flex-wrap gap-1">${KLASTER[k].map(c => `<span class="px-1.5 py-0.5 bg-white rounded text-[8px] border">${c}</span>`).join('')}</div></div>`;
-            });
-            document.getElementById('pedomanContent').innerHTML = h;
-            m.classList.remove('hidden');
-        } else m.classList.add('hidden');
+
+        // Menambahkan daftar klaster secara dinamis dari objek KLASTER
+        Object.keys(KLASTER).forEach(k => {
+            const s = CLUSTER_STYLES[k];
+            h += `
+            <div class="p-4 ${s.bg} rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3 mb-2 font-black text-[10px] ${s.color}">
+                    <i class="fas ${s.icon}"></i> ${k}
+                </div>
+                <div class="flex flex-wrap gap-1">
+                    ${KLASTER[k].map(c => `<span class="px-1.5 py-0.5 bg-white dark:bg-slate-700 rounded text-[8px] border dark:border-slate-600 shadow-sm">${c}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+
+        document.getElementById('pedomanContent').innerHTML = h;
+        m.classList.remove('hidden');
+    } else {
+        m.classList.add('hidden');
     }
+}
    
     function toggleTheme() { 
         document.documentElement.classList.toggle('dark');
