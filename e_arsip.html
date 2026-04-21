@@ -42,7 +42,7 @@
     .dark { 
         /* TEMA GELAP (Dark Mode) */
         --bg-body: #0f172a;           /* Background biru dongker sangat gelap */
-        --bg-card: #1e293b;           /* Kartu sedikit lebih terang dari body */
+        --bg-card: #030303;           /* Kartu sedikit lebih terang dari body */
         --text-main: #f1f5f9;         /* Teks putih kusam (tidak perih di mata) */
         --text-muted: #94a3b8;
         --input-bg: #334155;          /* Input gelap */
@@ -85,7 +85,7 @@
     /* SIDEBAR */
     #sidebar { 
         width: var(--sidebar-width); 
-        background-color: var(--sidebar-bg);
+        background-color: #000000;
         color: var(--sidebar-text);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         z-index: 50; 
@@ -112,7 +112,7 @@
         align-items: center; 
         padding: 12px 24px; 
         border-radius: 0 24px 24px 0; 
-        color: #94a3b8; /* Warna default abu-abu */
+        color: #aeb6c0; /* Warna default abu-abu */
         font-weight: 600; 
         margin-bottom: 2px;
         transition: 0.2s;
@@ -236,6 +236,25 @@
         margin-right: 10px;
     }
 }
+/*running text*/		
+@keyframes marquee {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+    display: inline-block;
+    padding-right: 50px;
+    animation: marquee 50s linear infinite;
+}
+
+/* Berhenti saat kursor di atasnya agar staf bisa membaca info penting */
+.animate-marquee:hover {
+    animation-play-state: paused;
+    color: #fde047; /* Berubah warna kuning saat dihover */
+    cursor: default;
+}
+
 </style>
 	
 </head>
@@ -256,7 +275,7 @@
     <div class="h-12 px-4 border-b border-slate-800 flex items-center gap-3 shrink-0">
         <button onclick="document.getElementById('sidebar').classList.toggle('closed')" 
                 class="w-10 h-10 rounded-xl hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors shrink-0">
-            <i class="fas fa-bars text-lg"></i>
+            <i class="fas fa-bars text-lg text-green-800"></i>
         </button>
         <div class="flex items-center gap-2 overflow-hidden transition-opacity duration-300 sidebar-content">
             <div class="fas fa-mail-bulk" style="font-size:20px; color:#16ca10"></div>
@@ -268,28 +287,36 @@
         <button onclick="switchMode('masuk')" id="btn-masuk" class="nav-btn"><i class="fas fa-file-import w-5 text-lg text-blue-500"></i> <span>Surat Masuk</span></button>
         <button onclick="switchMode('keluar')" id="btn-keluar" class="nav-btn"><i class="fas fa-file-export w-5 text-lg text-rose-500"></i> <span>Surat Keluar</span></button>
         <button onclick="switchMode('agenda')" id="btn-agenda" class="nav-btn"><i class="fas fa-book w-5 text-lg text-purple-500"></i> <span>Buku Agenda</span></button>
-        <a href="https://aplikasi-surat-tugas.vercel.app/" target="_blank" class="nav-btn"><i class="fas fa-edit w-5 text-lg text-orange-500"></i> <span>Buat Surat Tugas</span></a>
+        <a href="https://aplikasi-surat-tugas.vercel.app/" target="_blank" class="nav-btn"><i class="fas fa-edit w-5 text-lg text-rose-500/50"></i> <span>Buat Surat Tugas</span></a>
         
         <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
-        <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg"></i> <span>Panduan</span></button>
-        <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg" id="syncIcon"></i> <span>Sinkronisasi</span></button>
-        <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg"></i> <span>Export Excel</span></button>
-        <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg" id="themeIcon"></i> <span>Tema</span></button>
-        <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-500"></i> <span>Keluar</span></button>
+        <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg text-amber-900"></i><span>Panduan</span></button>
+        <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg text-cyan-500" id="syncIcon"></i> <span>Sinkronisasi</span></button>
+        <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg text-green-500"></i> <span>Export Excel</span></button>
+        <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg text-white-800" id="themeIcon"></i> <span>Tema</span></button>
+        <button onclick="logout()" class="nav-btn mt-4"><i class="fas fa-power-off w-5 text-lg text-500 text-red-700"></i> <span>Keluar</span></button>
         </div>
     </div>
 </aside>
 
 <div id="mainContent" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
-   <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-4 shrink-0">
-    <div class="flex items-center">
+   <header class="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-4 shrink-0 gap-4">
+    <div class="flex items-center shrink-0">
         <button onclick="document.getElementById('sidebar').classList.toggle('closed')" class="mobile-menu-btn md:hidden">
             <i class="fas fa-bars"></i>
         </button>
         <h2 id="pageTitle" class="font-black uppercase tracking-widest text-xs text-emerald-600">Arsip Digital</h2>
     </div>
-    <div id="clock" class="hidden sm:block">
+
+    <div class="flex-1 overflow-hidden hidden md:block">
+        <div class="whitespace-nowrap">
+            <div id="running-text-content" class="inline-block animate-marquee font-Bookman-Old-Style text-[12px] font-bold text-green-600 uppercase tracking-tight">
+                Memuat Informasi...
+            </div>
         </div>
+    </div>
+
+    <div id="clock" class="hidden sm:block shrink-0 font-mono text-xs text-slate-500"></div>
 </header>
 
     <main class="flex-1 overflow-y-auto px-4 pt-2 pb-6 custom-scrollbar">
@@ -781,7 +808,7 @@ function generatePreview() {
     document.getElementById('tableBody').innerHTML = filtered.map((x) => {
         // Logika Retensi Otomatis
         const retensiLabel = x.retensi || "✅ Aktif"; 
-        let retColor = "bg-slate-100 text-slate-400";
+        let retColor = "bg-blue-500 text-white-400";
 
         if (retensiLabel.includes("PERMANEN")) retColor = "bg-emerald-100 text-emerald-700";
         else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) retColor = "bg-rose-100 text-rose-700 animate-pulse";
@@ -834,6 +861,7 @@ function generatePreview() {
         })
         .reduce((a, b) => Math.max(a, b), 0);
     document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
+    updateRunningText();
 }
 
     function cetakBarcode(i) {
@@ -1014,53 +1042,47 @@ function generatePreview() {
     }
 
     function setAutoNumber() {
-    // 1. Ambil data dari form
-    const currentMode = window.currentMode || 'arsip';
     const currentKlaster = document.getElementById('selKlaster').value;
     const currentJenis = document.getElementById('selJenisSurat').value;
     const tglInput = document.getElementById('arsipTgl').value;
     
-    // Jika tanggal belum diisi, gunakan tahun berjalan
+    // Ambil tahun dari input, jika kosong pakai tahun berjalan
     const tahunAcuan = tglInput ? new Date(tglInput).getFullYear() : new Date().getFullYear();
 
-    // 2. Filter database mencari nomor terakhir di tahun yang sama
     const dataTerfilter = database.filter(x => {
-        const parts = x.no.split('/');
-        // Ambil bagian terakhir dari nomor (Tahun)
-        const tahunDokumen = parseInt(parts[parts.length - 1], 10);
-        
         const matchMode = (x.mode || 'arsip') === currentMode;
-        const matchTahun = tahunDokumen === tahunAcuan;
+        
+        // Perbaikan: Ambil tahun dengan lebih aman dari string nomor
+        const parts = x.no.split('/');
+        const tahunDokumen = parseInt(parts[parts.length - 1], 10);
 
         if (currentMode === 'arsip') {
-            // Untuk arsip: harus cocok Klaster, Jenis, dan Tahun
-            return matchMode && x.klaster === currentKlaster && x.jenis === currentJenis && matchTahun;
+            return matchMode && 
+                   x.klaster === currentKlaster && 
+                   x.jenis === currentJenis && 
+                   tahunDokumen === tahunAcuan;
         } else {
-            // Untuk Surat Masuk/Keluar: cukup cocok Mode dan Tahun
-            return matchMode && matchTahun;
+            return matchMode && tahunDokumen === tahunAcuan;
         }
     });
 
-    // 3. Cari angka urut tertinggi (indeks ke-1)
     const maxNo = dataTerfilter.reduce((max, item) => {
         const parts = item.no.split('/');
         if (parts.length > 1) {
-            const num = parseInt(parts[1], 10);
+            const num = parseInt(parts[1], 10); // Ambil angka urut (index 1)
             return !isNaN(num) ? Math.max(max, num) : max;
         }
         return max;
     }, 0);
 
-    // 4. Set nilai ke input (nomor terakhir + 1)
     document.getElementById('noUrut').value = maxNo + 1;
-    
-    // 5. Update tampilan preview nomor di layar
-    generatePreview();
+    generatePreview(); // Perbarui tampilan teks hijau di atas form
 }
 
 // Pemicu update nomor urut otomatis
 document.getElementById('selKlaster').addEventListener('change', setAutoNumber);
 document.getElementById('selJenisSurat').addEventListener('change', setAutoNumber);
+document.getElementById('arsipTgl').addEventListener('change', setAutoNumber);
 
 async function hashPassword(string) {
     if (!string) return "";
@@ -1184,11 +1206,33 @@ function closePreview() {
     document.getElementById('previewFrame').src = "";
 }
 
+	function updateRunningText() {
+    const totalArsip = database.length;
+    const tahunSekarang = new Date().getFullYear();
+    const txtElement = document.getElementById('running-text-content');
+    const adaRahasia = database.some(item => item.rahasia === true);
+    const pesanRahasia = adaRahasia 
+        ? "⚠️ PERINGATAN: Dokumen berstatus RAHASIA hanya dapat dibuka dengan password khusus!" 
+        : "✅ Semua dokumen dalam status publik/umum.";
+    const infoSistem = [
+        `Selamat Datang di Aplikasi Arsip Puskesmas Kiarapedes`,
+        `STATUS: Sinkronisasi Aktif (Tahun ${tahunSekarang})`,
+        `TOTAL: ${totalArsip} Dokumen Terdaftar`,
+        `SINKRONISASI: Nomor otomatis akan selalu update setelah tombol 'Simpan' diklik`,
+        pesanRahasia,
+        `TIPS: Jangan lupa Logout jika selesai menggunakan aplikasi arsip`
+    ];
+    txtElement.innerHTML = infoSistem.join(" <span class='mx-8 text-blue-300'>•</span> ");
+}
+
 window.onload = () => {
         if (localStorage.getItem('pkm_session_status') === 'AUTHORIZED') {
             document.getElementById('modalLogin').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
             initApp();
+        updateRunningText(); // Tambahkan ini
+    renderTable();
+    setAutoNumber();
         }
     };
 </script>
