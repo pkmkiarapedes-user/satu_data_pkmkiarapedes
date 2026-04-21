@@ -1014,35 +1014,34 @@ function generatePreview() {
     }
 
     function setAutoNumber() {
-    // 1. Ambil kriteria saat ini dari form
+    // 1. Ambil data dari form
+    const currentMode = window.currentMode || 'arsip';
     const currentKlaster = document.getElementById('selKlaster').value;
     const currentJenis = document.getElementById('selJenisSurat').value;
-    
-    // 2. Tentukan Tahun Acuan (dari input tanggal, jika kosong pakai tahun hari ini)
     const tglInput = document.getElementById('arsipTgl').value;
+    
+    // Jika tanggal belum diisi, gunakan tahun berjalan
     const tahunAcuan = tglInput ? new Date(tglInput).getFullYear() : new Date().getFullYear();
 
-    // 3. Filter database untuk mencari nomor terakhir yang relevan
+    // 2. Filter database mencari nomor terakhir di tahun yang sama
     const dataTerfilter = database.filter(x => {
-        const matchMode = (x.mode || 'arsip') === currentMode;
-        
-        // Parsing tahun dari bagian terakhir nomor (misal: .../2026)
         const parts = x.no.split('/');
+        // Ambil bagian terakhir dari nomor (Tahun)
         const tahunDokumen = parseInt(parts[parts.length - 1], 10);
+        
+        const matchMode = (x.mode || 'arsip') === currentMode;
+        const matchTahun = tahunDokumen === tahunAcuan;
 
         if (currentMode === 'arsip') {
-            // Filter Arsip: Mode + Klaster + Jenis + Tahun harus cocok
-            return matchMode && 
-                   x.klaster === currentKlaster && 
-                   x.jenis === currentJenis && 
-                   tahunDokumen === tahunAcuan;
+            // Untuk arsip: harus cocok Klaster, Jenis, dan Tahun
+            return matchMode && x.klaster === currentKlaster && x.jenis === currentJenis && matchTahun;
         } else {
-            // Filter Surat Masuk/Keluar: Mode + Tahun harus cocok
-            return matchMode && tahunDokumen === tahunAcuan;
+            // Untuk Surat Masuk/Keluar: cukup cocok Mode dan Tahun
+            return matchMode && matchTahun;
         }
     });
 
-    // 4. Cari angka urut tertinggi (indeks ke-1 pada format: KODE/NO/...)
+    // 3. Cari angka urut tertinggi (indeks ke-1)
     const maxNo = dataTerfilter.reduce((max, item) => {
         const parts = item.no.split('/');
         if (parts.length > 1) {
@@ -1052,11 +1051,10 @@ function generatePreview() {
         return max;
     }, 0);
 
-    // 5. Set nomor berikutnya ke input
-    const nextNo = maxNo + 1;
-    document.getElementById('noUrut').value = nextNo;
+    // 4. Set nilai ke input (nomor terakhir + 1)
+    document.getElementById('noUrut').value = maxNo + 1;
     
-    // 6. Update tampilan teks preview nomor
+    // 5. Update tampilan preview nomor di layar
     generatePreview();
 }
 
