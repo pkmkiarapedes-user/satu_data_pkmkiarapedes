@@ -853,11 +853,11 @@ function generatePreview() {
     document.getElementById('selSub').value = d.sub || "";
     document.getElementById('selJenisSurat').value = d.jenis || "";
     document.getElementById('arsipTgl').value = d.tgl || "";
-    if(document.getElementById('asalSurat')) {
-        document.getElementById('asalSurat').value = d.asal || "-";
+    if(document.getElementById('inpAsal')) {
+        document.getElementById('inpAsal').value = d.asal || "-";
     }
-    if(document.getElementById('tujuanSurat')) {
-        document.getElementById('tujuanSurat').value = d.tujuan || "-";
+    if(document.getElementById('inpTujuan')) {
+        document.getElementById('inpTujuan').value = d.tujuan || "-";
     }
 
     const isChecked = d.isRahasia === true || String(d.isRahasia).toLowerCase() === "true";
@@ -1076,15 +1076,16 @@ async function hashPassword(string) {
 function togglePassword(id) {
     const input = document.getElementById(id);
     const icon = document.getElementById('eye-' + id);
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = "password";
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-}
+    if (!input || !icon) return;
 
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+    
+    // Gunakan classList toggle agar lebih rapi
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+}
+	
 function togglePassField() {
     const isChecked = document.getElementById('isRahasia').checked;
     const container = document.getElementById('passContainer');
