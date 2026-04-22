@@ -290,7 +290,7 @@
         <a href="https://aplikasi-surat-tugas.vercel.app/" target="_blank" class="nav-btn"><i class="fas fa-edit w-5 text-lg text-rose-500/50"></i> <span>Buat Surat Tugas</span></a>
         
         <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
-        <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-open w-5 text-lg text-amber-900"></i><span>Panduan</span></button>
+        <button onclick="togglePedoman()" class="nav-btn"><i class="fas fa-book-reader w-5 text-lg text-amber-900"></i><span>Panduan</span></button>
         <button onclick="syncFromGAS()" class="nav-btn"><i class="fas fa-sync w-5 text-lg text-cyan-500" id="syncIcon"></i> <span>Sinkronisasi</span></button>
         <button onclick="exportToExcel()" class="nav-btn"><i class="fas fa-file-excel w-5 text-lg text-green-500"></i> <span>Export Excel</span></button>
         <button onclick="toggleTheme()" class="nav-btn"><i class="fas fa-moon w-5 text-lg text-white-800" id="themeIcon"></i> <span>Tema</span></button>
@@ -320,41 +320,92 @@
 </header>
 
     <main class="flex-1 overflow-y-auto px-4 pt-2 pb-6 custom-scrollbar">
-       <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-5 gap-1 mb-1">
-    <div class="card-custom p-5 border-l-4 border-emerald-500 relative overflow-hidden">
+       <div id="statsContainer" class="flex flex-nowrap gap-2 mb-4 overflow-x-auto pb-2 custom-scrollbar">
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
         <div class="relative z-10">
-            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total Arsip</p>
+            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Total Arsip</p>
             <h3 id="statTotal" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-box-archive absolute right-3 bottom-3 text-3xl text-emerald-500/50"></i>
+        <i class="fas fa-box-archive absolute right-2 bottom-2 text-xl text-emerald-500/50"></i>
     </div>
-    <div class="card-custom p-5 border-l-4 border-blue-500 relative overflow-hidden">
+
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SK</p>
             <h3 id="statSK" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-file-signature absolute right-3 bottom-3 text-3xl text-blue-500/50"></i>
+        <i class="fas fa-file-signature absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
     </div>
-    <div class="card-custom p-5 border-l-4 border-purple-500 relative overflow-hidden">
+
+     <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total SOP</p>
             <h3 id="statSOP" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-3xl text-purple-500/50"></i>
+        <i class="fas fa-file absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
     </div>
-    <div class="card-custom p-5 border-l-4 border-rose-500 relative overflow-hidden">
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total ST</p>
+            <h3 id="statST" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="fas fa-clipboard-list absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total UND</p>
+            <h3 id="statUND" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="far fa-calendar absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total MOU</p>
+            <h3 id="statMOU" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="fas fa-paste absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total KAK</p>
+            <h3 id="statKAK" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="fas fa-file-alt absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total LR</p>
+            <h3 id="statLR" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="fas fa-sticky-note absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Total NOU</p>
+            <h3 id="statNOU" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="	fas fa-file-code right-3 bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Dok. Lain</p>
-            <h3 id="statLain" class="text-2xl font-black">0</h3>
+            <h3 id="statDL" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-folder-tree absolute right-3 bottom-3 text-3xl text-rose-500/50"></i>
+        <i class="fas fa-clone bottom-3 text-xl text-emerald-500/50"></i>
     </div>
-    <div class="card-custom p-5 border-l-4 border-amber-500 relative overflow-hidden">
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
+        <div class="relative z-10">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Permanen</p>
+            <h3 id="statPermanen" class="text-2xl font-black">0</h3>
+        </div>
+        <i class="fas fa-book bottom-3 text-xl text-emerald-500/50"></i>
+    </div>
+    <div class="card-custom p-3 border-l-4 border-emerald-500 relative overflow-hidden flex-1 min-w-[120px] shrink-0">
         <div class="relative z-10">
             <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Klaster</p>
             <h3 id="statKlaster" class="text-2xl font-black">0</h3>
         </div>
-        <i class="fas fa-sitemap absolute right-3 bottom-3 text-3xl text-amber-500/50"></i>
+        <i class="fas fa-sitemap absolute right-3 bottom-3 text-xl text-emerald-500/50"></i>
     </div>
 </div>
 
@@ -489,7 +540,7 @@
                             </thead>
                             <tbody id="tableBody" class="divide-y dark:divide-slate-800"></tbody>
                         </table>
-                    </div>
+						</div> <div id="paginationControls"></div>
                 </div>
             </div>
         </div>
@@ -515,6 +566,9 @@
     let currentEditNo = null; 
     let fileData = null;
 
+	let currentPage = 1;
+	const rowsPerPage = 10; // Batasi 5 dokumen per halaman
+	
     const KLASTER = {
         "Klaster I: Manajemen": ["440 (Umum)", "800 (Kepegawaian)", "900 (Keuangan)", ],
         "Klaster II: Ibu & Anak": ["440.21 (Ibu Hamil/Nifas)", "440.22 (Balita & Pra-Sekolah)", "440.23 (Anak 0-18 Thn)", "440.24 (Sekolah & Remaja)"],
@@ -803,24 +857,55 @@ function generatePreview() {
         return matchMode && matchQ && matchK && matchJ;
     });
     
-    // 2. Update Statistik Berdasarkan Filter Aktif (Ikon sudah ada di HTML)
+    // 2. Update Statistik
     document.getElementById('statTotal').innerText = filtered.length;
     document.getElementById('statSK').innerText = filtered.filter(x => x.jenis === 'SK').length;
     document.getElementById('statSOP').innerText = filtered.filter(x => x.jenis === 'SOP').length;
-    document.getElementById('statLain').innerText = filtered.filter(x => x.jenis !== 'SK' && x.jenis !== 'SOP').length;
+    document.getElementById('statST').innerText = filtered.filter(x => x.jenis === 'ST').length;
+    document.getElementById('statUND').innerText = filtered.filter(x => x.jenis === 'UND').length;
+    document.getElementById('statMOU').innerText = filtered.filter(x => x.jenis === 'MOU').length;
+    document.getElementById('statKAK').innerText = filtered.filter(x => x.jenis === 'KAK').length;
+    document.getElementById('statLR').innerText = filtered.filter(x => x.jenis === 'LR').length;
+    document.getElementById('statNOU').innerText = filtered.filter(x => x.jenis === 'NOU').length;
+    document.getElementById('statDL').innerText = filtered.filter(x => x.jenis === 'DL').length;
+    document.getElementById('statPermanen').innerText = filtered.filter(x => x.jenis === 'PERMANEN').length;
     document.getElementById('statKlaster').innerText = [...new Set(filtered.map(x => x.klaster))].length;
 
+    // --- LOGIKA PAGINATION ---
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    
+    // Reset ke halaman 1 jika filter membuat halaman saat ini kosong
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedItems = filtered.slice(startIndex, endIndex);
+    // -------------------------
+
     // 3. Render Baris Tabel
-    document.getElementById('tableBody').innerHTML = filtered.map((x) => {
+    const tableBody = document.getElementById('tableBody');
+    if (paginatedItems.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3" class="p-10 text-center text-slate-400 font-bold">DATA TIDAK DITEMUKAN</td></tr>`;
+        renderPagination(0, 0);
+        return;
+    }
+
+    tableBody.innerHTML = paginatedItems.map((x) => {
         // Logika Retensi Otomatis
         const retensiLabel = x.retensi || "✅ Aktif"; 
-        let retColor = "bg-blue-500 text-white-400";
+        
+        // PERUBAHAN: Warna Aktif menjadi Biru
+        let retColor = "bg-blue-100 text-blue-700 border border-blue-200";
 
-        if (retensiLabel.includes("PERMANEN")) retColor = "bg-emerald-100 text-emerald-700";
-        else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) retColor = "bg-rose-100 text-rose-700 animate-pulse";
-        else if (/🕒|Hampir/i.test(retensiLabel)) retColor = "bg-amber-100 text-amber-700";
+        if (retensiLabel.includes("PERMANEN")) {
+            retColor = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+        } else if (/⚠️|INAKTIF|habis/i.test(retensiLabel)) {
+            retColor = "bg-rose-100 text-rose-700 animate-pulse border border-rose-200";
+        } else if (/🕒|Hampir/i.test(retensiLabel)) {
+            retColor = "bg-amber-100 text-amber-700 border border-amber-200";
+        }
 
-        // Mencari index asli untuk tombol Aksi
         const originalIndex = database.findIndex(item => item.no === x.no);
 
         return `
@@ -841,22 +926,25 @@ function generatePreview() {
             </td>
             <td class="p-4">
                 <div class="flex justify-center gap-2 whitespace-nowrap">
-                    <button onclick="cetakBarcode(${originalIndex})" class="btn-action bg-slate-100 dark:bg-slate-700 hover:bg-emerald-500 hover:text-white" title="QR Code">
-                        <i class="fas fa-qrcode"></i>
+                    <button onclick="cetakBarcode(${originalIndex})" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-500 hover:text-white transition-all">
+                        <i class="fas fa-qrcode text-[10px]"></i>
                     </button>
-                    <button onclick="editData(${originalIndex})" class="btn-action bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white" title="Edit">
+                    <button onclick="editData(${originalIndex})" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all">
                         <i class="fas fa-pen text-[10px]"></i>
                     </button>
-                    <button onclick="openPreview(${originalIndex})" class="btn-action bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white" title="Lihat">
+                    <button onclick="openPreview(${originalIndex})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all">
                         <i class="fas fa-eye text-[10px]"></i>
                     </button>
-                    <button onclick="hapus('${x.no}')" class="btn-action bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white" title="Hapus">
+                    <button onclick="hapus('${x.no}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all">
                         <i class="fas fa-trash text-[10px]"></i>
                     </button>
                 </div>
             </td>
         </tr>`;
     }).join('');
+
+    // Panggil Navigasi Halaman
+    renderPagination(totalPages, currentPage);
 
     // Update Placeholder No Urut Terakhir
     const maxNo = database
@@ -867,9 +955,46 @@ function generatePreview() {
         })
         .reduce((a, b) => Math.max(a, b), 0);
     document.getElementById('noUrut').placeholder = "No Terakhir: " + maxNo;
+    
     updateRunningText();
 }
 
+// FUNGSI NAVIGASI HALAMAN (Tambahkan ini di bawah renderTable)
+function renderPagination(totalPages, current) {
+    const container = document.getElementById('paginationControls');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = "";
+        return;
+    }
+
+    let html = `<div class="flex items-center justify-center gap-2 p-4 border-t dark:border-slate-800">`;
+    
+    for (let i = 1; i <= totalPages; i++) {
+        const isActive = i === current;
+        html += `
+            <button onclick="changePage(${i})" 
+                class="w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                    isActive 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                    : 'bg-white dark:bg-slate-800 text-slate-500 hover:bg-blue-50 border dark:border-slate-700'
+                }">
+                ${i}
+            </button>`;
+    }
+    
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable();
+    // Scroll ke atas tabel agar user tidak bingung
+    document.querySelector('.overflow-y-auto').scrollTop = 0;
+}
+	
     function cetakBarcode(i) {
         const data = database[i];
         const win = window.open('', '_blank', 'width=400,height=500');
