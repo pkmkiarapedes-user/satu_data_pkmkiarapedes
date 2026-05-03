@@ -517,12 +517,16 @@
                 <div class="card-custom p-4 mb-1 bg-white dark:bg-slate-900 flex flex-wrap gap-2">
                     <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari nomor atau perihal..." class="input-modern flex-1 min-w-[200px]">
                     
-                    <select id="filterKlaster" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="">Semua Klaster</option>
+                    <select id="filterKlaster" onchange="updateFilterSub();renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Klaster</option>
                     </select>
 
+					<select id="filterSub" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
+       					<option value="">Sub Klaster</option>
+   					</select>
+
                     <select id="filterJenis" onchange="renderTable()" class="p-2 text-xs rounded-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="">Semua Jenis</option>
+                        <option value="">Jenis</option>
                         <option value="SK">📄 SURAT KEPUTUSAN (SK)</option>
                         <option value="SOP">📋 STANDAR OPERASIONAL PROSEDUR (SOP)</option>
                         <option value="SP">📝 SURAT TUGAS / PERINTAH (SP)</option>
@@ -854,19 +858,19 @@ function generatePreview() {
    function renderTable() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const fKlaster = document.getElementById('filterKlaster').value;
+    const fSub = document.getElementById('filterSub').value;
     const fJenis = document.getElementById('filterJenis').value;
 
     // 1. Filter Berlapis (Perbaikan: x.jenisSurat digunakan jika x.jenis kosong)
     const filtered = database.filter(x => {
-        const matchMode = (x.mode || 'arsip') === currentMode;
-        const matchQ = (x.no && x.no.toLowerCase().includes(q)) || (x.nama && x.nama.toLowerCase().includes(q));
-        const matchK = fKlaster === "" || x.klaster === fKlaster;
+    const matchMode = (x.mode || 'arsip') === currentMode;
+    const matchQ = (x.no && x.no.toLowerCase().includes(q)) || (x.nama && x.nama.toLowerCase().includes(q));
+    const matchK = fKlaster === "" || x.klaster === fKlaster;
+    const matchSub = fSub === "" || x.sub === fSub;
+    const docType = x.jenis || x.jenisSurat || "";
+    const matchJ = fJenis === "" || docType === fJenis;
         
-        // Perbaikan: Cek x.jenis ATAU x.jenisSurat agar kompatibel dengan data lama/baru
-        const docType = x.jenis || x.jenisSurat || "";
-        const matchJ = fJenis === "" || docType === fJenis;
-        
-        return matchMode && matchQ && matchK && matchJ;
+        return matchMode && matchQ && matchK && matchSub && matchJ;
     });
     
     // 2. Update Statistik (Perbaikan referensi filter jenis)
@@ -940,6 +944,25 @@ function generatePreview() {
 
     renderPagination(totalPages, currentPage);
     updateRunningText();
+}
+
+function updateFilterSub() {
+    const klasterSelected = document.getElementById('filterKlaster').value;
+    const subFilter = document.getElementById('filterSub');
+    
+    if (!klasterSelected) {
+        subFilter.innerHTML = '<option value="">Sub Klaster</option>';
+        return;
+    }
+
+    // Mengambil daftar sub dari objek KLASTER yang sudah ada
+    const listSub = KLASTER[klasterSelected];
+    let options = '<option value="">Sub Klaster</option>';
+    listSub.forEach(s => {
+        options += `<option value="${s}">${s}</option>`;
+    });
+    
+    subFilter.innerHTML = options;
 }
 
 // FUNGSI NAVIGASI HALAMAN (Tambahkan ini di bawah renderTable)
