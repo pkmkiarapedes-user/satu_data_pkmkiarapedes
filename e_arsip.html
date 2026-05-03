@@ -450,7 +450,7 @@
                         <option value="">-- Pilih Jenis Dokumen --</option>
                         <option value="SK">📄 SURAT KEPUTUSAN (SK)</option>
                         <option value="SOP">📋 STANDAR OPERASIONAL PROSEDUR (SOP)</option>
-                        <option value="SP">📝 SURAT TUGAS/PERINTAH (SP)</option>
+                        <option value="SP">📝 SURAT TUGAS / PERINTAH (SP)</option>
                         <option value="UND">✉️ UNDANGAN (UND)</option>
                         <option value="MOU">🤝 BERITA ACARA (MOU)</option>
                         <option value="KAK">📜 KERANGKA ACUAN KEGIATAN (KAK)</option>
@@ -525,7 +525,7 @@
                         <option value="">Semua Jenis</option>
                         <option value="SK">📄 SURAT KEPUTUSAN (SK)</option>
                         <option value="SOP">📋 STANDAR OPERASIONAL PROSEDUR (SOP)</option>
-                        <option value="SP">📝 SURAT TUGAS/PERINTAH (SP)</option>
+                        <option value="SP">📝 SURAT TUGAS / PERINTAH (SP)</option>
                         <option value="UND">✉️ UNDANGAN (UND)</option>
                         <option value="MOU">🤝 BERITA ACARA (MOU)</option>
                         <option value="KAK">📜 KERANGKA ACUAN KEGIATAN (KAK)</option>
@@ -869,7 +869,7 @@ function generatePreview() {
     document.getElementById('statTotal').innerText = filtered.length;
     document.getElementById('statSK').innerText = filtered.filter(x => x.jenis === 'SK').length;
     document.getElementById('statSOP').innerText = filtered.filter(x => x.jenis === 'SOP').length;
-    document.getElementById('statST').innerText = filtered.filter(x => x.jenis === 'ST').length;
+    document.getElementById('statSP').innerText = filtered.filter(x => x.jenis === 'SP').length;
     document.getElementById('statUND').innerText = filtered.filter(x => x.jenis === 'UND').length;
     document.getElementById('statMOU').innerText = filtered.filter(x => x.jenis === 'MOU').length;
     document.getElementById('statKAK').innerText = filtered.filter(x => x.jenis === 'KAK').length;
