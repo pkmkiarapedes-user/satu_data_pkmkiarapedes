@@ -592,7 +592,7 @@
         "Klaster IV: P2P & Kesling": { icon: "fa-virus-slash", color: "text-emerald-600", bg: "bg-emerald-50" },
         "Klaster V: Lintas Klaster": { icon: "fa-hospital-user", color: "text-indigo-600", bg: "bg-indigo-50" }
     };
-
+		
     function verifikasiPin() {
         const pinInput = document.getElementById('pinInput').value;
         if (btoa(pinInput) === PIN_HASH) {
@@ -1225,7 +1225,6 @@ async function hashPassword(string) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// --- OPTIMASI UX: TOGGLE LIHAT PASSWORD ---
 function togglePassword(id) {
     const input = document.getElementById(id);
     const icon = document.getElementById('eye-' + id);
